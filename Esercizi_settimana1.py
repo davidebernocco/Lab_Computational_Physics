@@ -4,6 +4,9 @@ from cmath import inf
 #from tabulate import tabulate
 import numpy as np
 
+
+print("Now I have to do everything from the beginning again")
+
 # Overflow and Underflow
 numover = 1.
 nover=1.
