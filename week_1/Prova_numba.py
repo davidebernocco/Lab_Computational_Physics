@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
 """
-Created on Tue Oct 10 18:20:36 2023
+First trial of Numba Just-In-Time Compiler
 
 @author: david
 """
