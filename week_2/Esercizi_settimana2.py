@@ -3,23 +3,16 @@ Now I have to do everything from the beginning again
 
 @author: david
 """
-
-#Figures now render in the Plots pane by default.
-#To make them also appear inline in the Console,
-# uncheck "Mute Inline Plotting" under the Plots pane options menu.
-
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
 from numba import jit, njit, int32, float64
 import math
 
-# COULD BE INTERESTING AND USEFUL FOR THE FUTURE LEARNING HOW TO HANDLE DICTIONARIES
-
 
 #-- ES 1 --
 #---------- Linear congruent method and periodicity
-"""
+
 @jit(int32[:](int32, int32, int32, int32, int32))
 def lin_cong_met(x0, a, c, M, n):
     gen_lst = [x0]
@@ -43,12 +36,14 @@ def lin_cong_met_period(x0, a, c, M, n):
            return np.asarray(gen_lst, dtype=np.int32), np.int32(len(gen_lst))
     return np.asarray(gen_lst, dtype=np.int32), np.int32(len(gen_lst))
 #It seems synthax has to be slightly changed if I want to output an array and an integer
-"""
+
 
 
 #-- ES 2 --
 #---------- Intrinsic generators: uniformity and correlation (qualitative test)
-"""
+
+# Could be useful fixing a SEED in the prng!!!
+
 num_rand = 1000
 data = np.random.rand(num_rand)
 
@@ -82,11 +77,10 @@ plt.title('Correlation test - Pairs of consecutive numbers')
 plt.legend()
 plt.grid(True)
 plt.show()
-"""
+
 
 #-- ES 3 --
 #---------- Intrinsic generators: uniformity and correlation (quantitative test)
-
 
 #3.1.A) Brute force method: evaluation of k-momentum using several sequences of increasing length
 
