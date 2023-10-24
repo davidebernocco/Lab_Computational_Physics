@@ -163,6 +163,8 @@ plt.legend()
 plt.grid()
 plt.show()
 
+print(np.mean(x), np.std(x))
+
 IQR2 = np.percentile(y, 75) - np.percentile(y, 25)
 bins2 = int((max(y) - min(y)) / (2 * IQR2 * len(y)**(-1/3)))
 
@@ -179,6 +181,8 @@ plt.legend()
 plt.grid()
 plt.show()
 
+print(np.mean(y), np.std(y))
+
 end_time3 = time.time()
 elapsed_time3 = end_time3 - start_time3
 print(f"Elapsed time3: {elapsed_time3:.4f} seconds")
@@ -192,23 +196,20 @@ Y1 = np.random.uniform(-1, 1, num_rand)
 
 @jit
 def R(u,v):
-    r = []
     x_vet = []
     y_vet = []
     for i in range(num_rand):
         if u[i]**2 + v[i]**2 <= 1 :
-            r.append(u[i]**2 + v[i]**2)
-            x_vet.append(u[i])
-            y_vet.append(v[i])
-    return r, x_vet, y_vet
+            r2 = u[i]**2 + v[i]**2
+            r2 = math.sqrt(-2* math.log(r2) / r2)
+            x_vet.append(r2* u[i])
+            y_vet.append(r2* v[i])
+    return np.asarray(x_vet, dtype=np.float64), np.asarray(y_vet, dtype=np.float64)
 
-x1  = np.sqrt(-2*np.log(R(X1,Y1)[0])/R(X1,Y1)[0])*R(X1,Y1)[1]
-y1 = np.sqrt(-2*np.log(R(X1,Y1)[0])/R(X1,Y1)[0])*R(X1,Y1)[2]
+IQR3 = np.percentile(R(X1,Y1)[0], 75) - np.percentile(R(X1,Y1)[0], 25)
+bins3 = int((max(R(X1,Y1)[0]) - min(R(X1,Y1)[0])) / (2 * IQR3 * len(R(X1,Y1)[0])**(-1/3)))
 
-IQR3 = np.percentile(x1, 75) - np.percentile(x1, 25)
-bins3 = int((max(x1) - min(x1)) / (2 * IQR3 * len(x1)**(-1/3)))
-
-hist3, bins3 = np.histogram(x1, bins3, density=False)
+hist3, bins3 = np.histogram(R(X1,Y1)[0], bins3, density=False)
 bin_centers3 = (bins3[:-1] + bins3[1:]) / 2
 bin_widths3 = np.diff(bins3)
 density3 = hist3 / sum(hist3)
@@ -221,10 +222,12 @@ plt.legend()
 plt.grid()
 plt.show()
 
-IQR4 = np.percentile(y1, 75) - np.percentile(y1, 25)
-bins4 = int((max(y1) - min(y1)) / (2 * IQR4 * len(y1)**(-1/3)))
+print(np.mean(R(X1,Y1)[0]), np.std(R(X1,Y1)[0]))
 
-hist4, bins4 = np.histogram(y1, bins4, density=False)
+IQR4 = np.percentile(R(X1,Y1)[1], 75) - np.percentile(R(X1,Y1)[1], 25)
+bins4 = int((max(R(X1,Y1)[1]) - min(R(X1,Y1)[1])) / (2 * IQR4 * len(R(X1,Y1)[1])**(-1/3)))
+
+hist4, bins4 = np.histogram(R(X1,Y1)[1], bins4, density=False)
 bin_centers4 = (bins4[:-1] + bins4[1:]) / 2
 bin_widths4 = np.diff(bins4)
 density4 = hist4 / sum(hist4)
@@ -236,6 +239,8 @@ plt.title('Normalized Histogram - gaussian distributed variable (box Muller mod.
 plt.legend()
 plt.grid()
 plt.show()
+
+print(np.mean(R(X1,Y1)[1]), np.std(R(X1,Y1)[1]))
 
 end_time4 = time.time()
 elapsed_time4 = end_time4 - start_time4
