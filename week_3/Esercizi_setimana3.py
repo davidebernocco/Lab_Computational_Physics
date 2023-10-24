@@ -50,20 +50,20 @@ plt.ylabel('log(Probability Density)')
 plt.title('Log histogram')
 plt.grid()
 plt.show()
-"""
+
+
 def line(x, m, q):
     return m*x + q
 
-params, covariance = curve_fit(line, bin_centers, hist)
+params, covariance = curve_fit(line, bin_centers[:80], log_counts[:80])
 
-plt.hist(data, bins=round(math.sqrt(num_rand)), color='blue', alpha=0.7, density=True, label='Histogram')
-plt.plot(bin_centers, line(bin_centers, *params), 'r', label='Linear Fit')
-
-plt.xlabel('Values')
-plt.ylabel('Frequency / Probability Density')
+plt.bar(bins[:-1], log_counts, width=bin_widths, alpha=0.5, color='b')
+plt.plot(bin_centers[:80], line(bin_centers[:80], *params), 'r', label='Linear Fit')
+plt.xlabel('Counts')
+plt.ylabel('log(Probability Density)')
 plt.title('Histogram with Linear Fit')
 plt.legend()
 plt.grid(True)
 plt.show()
-"""
+
 
