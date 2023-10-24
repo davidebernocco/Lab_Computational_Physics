@@ -139,6 +139,8 @@ print(f"Elapsed time2: {elapsed_time2:.4f} seconds")
 
 num_rand = 10**6
 
+#3.1) box Muller with trigonometric functions
+
 start_time3 = time.time()
 X = np.random.rand(num_rand)
 Y = np.random.rand(num_rand)
@@ -182,5 +184,59 @@ elapsed_time3 = end_time3 - start_time3
 print(f"Elapsed time3: {elapsed_time3:.4f} seconds")
 
 
+#3.2) box Muller without trigonometric functions
 
+start_time4 = time.time()
+X1 = np.random.uniform(-1, 1, num_rand)
+Y1 = np.random.uniform(-1, 1, num_rand)
 
+@jit
+def R(u,v):
+    r = []
+    x_vet = []
+    y_vet = []
+    for i in range(num_rand):
+        if u[i]**2 + v[i]**2 <= 1 :
+            r.append(u[i]**2 + v[i]**2)
+            x_vet.append(u[i])
+            y_vet.append(v[i])
+    return r, x_vet, y_vet
+
+x1  = np.sqrt(-2*np.log(R(X1,Y1)[0])/R(X1,Y1)[0])*R(X1,Y1)[1]
+y1 = np.sqrt(-2*np.log(R(X1,Y1)[0])/R(X1,Y1)[0])*R(X1,Y1)[2]
+
+IQR3 = np.percentile(x1, 75) - np.percentile(x1, 25)
+bins3 = int((max(x1) - min(x1)) / (2 * IQR3 * len(x1)**(-1/3)))
+
+hist3, bins3 = np.histogram(x1, bins3, density=False)
+bin_centers3 = (bins3[:-1] + bins3[1:]) / 2
+bin_widths3 = np.diff(bins3)
+density3 = hist3 / sum(hist3)
+
+plt.bar(bins3[:-1], density3, width=bin_widths3, alpha=0.5, color='b', label=r'$ p(x) = \frac{1}{\sqrt{2\pi \sigma}} e^{-\frac{(x-\mu)^{2}}{2\sigma^{2}}} $')
+plt.xlabel('Counts x')
+plt.ylabel('Probability Density')
+plt.title('Normalized Histogram - gaussian distributed variable (box Muller mod.)')
+plt.legend()
+plt.grid()
+plt.show()
+
+IQR4 = np.percentile(y1, 75) - np.percentile(y1, 25)
+bins4 = int((max(y1) - min(y1)) / (2 * IQR4 * len(y1)**(-1/3)))
+
+hist4, bins4 = np.histogram(y1, bins4, density=False)
+bin_centers4 = (bins4[:-1] + bins4[1:]) / 2
+bin_widths4 = np.diff(bins4)
+density4 = hist4 / sum(hist4)
+
+plt.bar(bins4[:-1], density4, width=bin_widths4, alpha=0.5, color='b', label=r'$ p(y) = \frac{1}{\sqrt{4\pi \sigma}} e^{-\frac{(y-\mu)^{4}}{4\sigma^{4}}} $')
+plt.xlabel('Counts y')
+plt.ylabel('Probability Density')
+plt.title('Normalized Histogram - gaussian distributed variable (box Muller mod.)')
+plt.legend()
+plt.grid()
+plt.show()
+
+end_time4 = time.time()
+elapsed_time4 = end_time4 - start_time4
+print(f"Elapsed time4: {elapsed_time4:.4f} seconds")
