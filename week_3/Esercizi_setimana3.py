@@ -7,9 +7,11 @@ Now I have to do everything from the beginning again
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-from numba import jit, njit, int32, float64
 import math
 import time
+import random
+from Funz3 import boxmuller, R, var_x, decay
+
 
 
 #-- ES 1 --
@@ -68,6 +70,8 @@ plt.grid(True)
 plt.show()
 """
 
+
+
 #-- ES 2 --
 #---------- Random numbers with non-uniform distribution: comparison between different algorithms
 
@@ -105,18 +109,12 @@ start_time2 = time.time()
 varU = np.random.rand(num_rand)
 varV = np.random.rand(num_rand)
 
-@jit
-def var_x(U,V):
-    x = []
-    for i in range(num_rand):
-        if U[i]**2 + V[i]**2 <= 1 :
-            x.append((U[i]**2 - V[i]**2)/(U[i]**2 + V[i]**2))
-    return x
+pack = var_x(varU, varV, num_rand)
 
-IQR2 = np.percentile(var_x(varU, varV), 75) - np.percentile(var_x(varU, varV), 25)
-bins2 = int((max(var_x(varU, varV)) - min(var_x(varU, varV))) / (2 * IQR2 * len(var_x(varU, varV))**(-1/3)))
+IQR2 = np.percentile(pack, 75) - np.percentile(pack, 25)
+bins2 = int((max(pack) - min(pack)) / (2 * IQR2 * len(pack)**(-1/3)))
 
-hist2, bins2 = np.histogram(var_x(varU, varV), bins, density=False)
+hist2, bins2 = np.histogram(pack, bins, density=False)
 bin_centers2 = (bins2[:-1] + bins2[1:]) / 2
 bin_widths2 = np.diff(bins2)
 density2 = hist2 / sum(hist2)
@@ -134,114 +132,68 @@ elapsed_time2 = end_time2 - start_time2
 print(f"Elapsed time2: {elapsed_time2:.4f} seconds")
 """
 
+
+
 #-- ES 3 --
 #---------- Random numbers with gaussian distribution: the box Muller algorithm
 
+# OSS: with the algoritms 3.1 and 3.2 showed in the Appendix_3 file,  we end up each time with two statistically independent and normal-distributed variables.
+# If the goal is producing a single set of random variables as usual, this procedure is evedently inefficient!
+
+# => Optimized algorithm: every two calls uses one of the two random numbers already generated in the previous call
+"""
 num_rand = 10**6
+start_time5 = time.time()
 
-#3.1) box Muller with trigonometric functions
+gen_lst = boxmuller(num_rand)
 
-start_time3 = time.time()
-X = np.random.rand(num_rand)
-Y = np.random.rand(num_rand)
-x  = np.sqrt(-2*np.log(X))*np.cos(2*math.pi*Y)
-y = np.sqrt(-2*np.log(X))*np.sin(2*math.pi*Y)
+IQR5 = np.percentile(gen_lst, 75) - np.percentile(gen_lst, 25)
+bins5 = int((max(gen_lst) - min(gen_lst)) / (2 * IQR5 * len(gen_lst)**(-1/3)))
 
-IQR = np.percentile(x, 75) - np.percentile(x, 25)
-bins = int((max(x) - min(x)) / (2 * IQR * len(x)**(-1/3)))
+hist5, bins5 = np.histogram(gen_lst, bins5, density=False)
+bin_centers5 = (bins5[:-1] + bins5[1:]) / 2
+bin_widths5 = np.diff(bins5)
+density5 = hist5 / sum(hist5)
 
-hist, bins = np.histogram(x, bins, density=False)
-bin_centers = (bins[:-1] + bins[1:]) / 2
-bin_widths = np.diff(bins)
-density = hist / sum(hist)
-
-plt.bar(bins[:-1], density, width=bin_widths, alpha=0.5, color='b', label=r'$ p(x) = \frac{1}{\sqrt{2\pi \sigma}} e^{-\frac{(x-\mu)^{2}}{2\sigma^{2}}} $')
-plt.xlabel('Counts x')
-plt.ylabel('Probability Density')
-plt.title('Normalized Histogram - gaussian distributed variable (box Muller)')
-plt.legend()
-plt.grid()
-plt.show()
-
-print(np.mean(x), np.std(x))
-
-IQR2 = np.percentile(y, 75) - np.percentile(y, 25)
-bins2 = int((max(y) - min(y)) / (2 * IQR2 * len(y)**(-1/3)))
-
-hist2, bins2 = np.histogram(y, bins2, density=False)
-bin_centers2 = (bins2[:-1] + bins2[1:]) / 2
-bin_widths2 = np.diff(bins2)
-density2 = hist2 / sum(hist2)
-
-plt.bar(bins2[:-1], density2, width=bin_widths2, alpha=0.5, color='b', label=r'$ p(y) = \frac{1}{\sqrt{2\pi \sigma}} e^{-\frac{(y-\mu)^{2}}{2\sigma^{2}}} $')
-plt.xlabel('Counts y')
-plt.ylabel('Probability Density')
-plt.title('Normalized Histogram - gaussian distributed variable (box Muller)')
-plt.legend()
-plt.grid()
-plt.show()
-
-print(np.mean(y), np.std(y))
-
-end_time3 = time.time()
-elapsed_time3 = end_time3 - start_time3
-print(f"Elapsed time3: {elapsed_time3:.4f} seconds")
-
-
-#3.2) box Muller without trigonometric functions
-
-start_time4 = time.time()
-X1 = np.random.uniform(-1, 1, num_rand)
-Y1 = np.random.uniform(-1, 1, num_rand)
-
-@jit
-def R(u,v):
-    x_vet = []
-    y_vet = []
-    for i in range(num_rand):
-        if u[i]**2 + v[i]**2 <= 1 :
-            r2 = u[i]**2 + v[i]**2
-            r2 = math.sqrt(-2* math.log(r2) / r2)
-            x_vet.append(r2* u[i])
-            y_vet.append(r2* v[i])
-    return np.asarray(x_vet, dtype=np.float64), np.asarray(y_vet, dtype=np.float64)
-
-IQR3 = np.percentile(R(X1,Y1)[0], 75) - np.percentile(R(X1,Y1)[0], 25)
-bins3 = int((max(R(X1,Y1)[0]) - min(R(X1,Y1)[0])) / (2 * IQR3 * len(R(X1,Y1)[0])**(-1/3)))
-
-hist3, bins3 = np.histogram(R(X1,Y1)[0], bins3, density=False)
-bin_centers3 = (bins3[:-1] + bins3[1:]) / 2
-bin_widths3 = np.diff(bins3)
-density3 = hist3 / sum(hist3)
-
-plt.bar(bins3[:-1], density3, width=bin_widths3, alpha=0.5, color='b', label=r'$ p(x) = \frac{1}{\sqrt{2\pi \sigma}} e^{-\frac{(x-\mu)^{2}}{2\sigma^{2}}} $')
-plt.xlabel('Counts x')
+plt.bar(bins5[:-1], density5, width=bin_widths5, alpha=0.5, color='b', label=r'$ p(x) = \frac{1}{\sqrt{2\pi \sigma}} e^{-\frac{(x-\mu)^{2}}{2\sigma^{2}}} $')
+plt.xlabel('Counts')
 plt.ylabel('Probability Density')
 plt.title('Normalized Histogram - gaussian distributed variable (box Muller mod.)')
 plt.legend()
 plt.grid()
 plt.show()
+print(np.mean(gen_lst), np.std(gen_lst))
 
-print(np.mean(R(X1,Y1)[0]), np.std(R(X1,Y1)[0]))
+end_time5 = time.time()
+elapsed_time5 = end_time5 - start_time5
+print(f"Elapsed time5: {elapsed_time5:.5f} seconds")
+"""
 
-IQR4 = np.percentile(R(X1,Y1)[1], 75) - np.percentile(R(X1,Y1)[1], 25)
-bins4 = int((max(R(X1,Y1)[1]) - min(R(X1,Y1)[1])) / (2 * IQR4 * len(R(X1,Y1)[1])**(-1/3)))
 
-hist4, bins4 = np.histogram(R(X1,Y1)[1], bins4, density=False)
-bin_centers4 = (bins4[:-1] + bins4[1:]) / 2
-bin_widths4 = np.diff(bins4)
-density4 = hist4 / sum(hist4)
+#-- ES 3 --
+#---------- Simulation of radioactive decay
 
-plt.bar(bins4[:-1], density4, width=bin_widths4, alpha=0.5, color='b', label=r'$ p(y) = \frac{1}{\sqrt{4\pi \sigma}} e^{-\frac{(y-\mu)^{4}}{4\sigma^{4}}} $')
-plt.xlabel('Counts y')
-plt.ylabel('Probability Density')
-plt.title('Normalized Histogram - gaussian distributed variable (box Muller mod.)')
+Lambda = 0.3
+Nstart = 10
+
+numero = decay(Nstart, Lambda)[0]
+t = decay(Nstart, Lambda)[1]
+
+print(numero, len(numero), t, len(t))
+
+"""
+plt.scatter(t, numero, label=f'N(0) = {Nstart} and $\lambda$ = {Lambda}', color='blue', marker='o')
+plt.xlabel('Time t')
+plt.ylabel('N(t)')
+plt.title('Simulation of radioactive decay')
 plt.legend()
-plt.grid()
-plt.show()
+plt.show()                
+"""
 
-print(np.mean(R(X1,Y1)[1]), np.std(R(X1,Y1)[1]))
 
-end_time4 = time.time()
-elapsed_time4 = end_time4 - start_time4
-print(f"Elapsed time4: {elapsed_time4:.4f} seconds")
+
+
+
+
+
+
