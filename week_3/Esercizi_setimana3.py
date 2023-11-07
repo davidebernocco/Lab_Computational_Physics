@@ -10,7 +10,7 @@ from scipy.optimize import curve_fit
 import math
 import time
 import random
-from Funz3 import boxmuller, R, var_x, decay
+from Funz3 import boxmuller, R, var_x, decay, line, multiple_plot
 
 
 
@@ -54,9 +54,6 @@ plt.title('Log histogram')
 plt.grid()
 plt.show()
 
-
-def line(x, m, q):
-    return m*x + q
 
 params, covariance = curve_fit(line, bin_centers[:80], log_counts[:80])
 
@@ -173,22 +170,44 @@ print(f"Elapsed time5: {elapsed_time5:.5f} seconds")
 #-- ES 3 --
 #---------- Simulation of radioactive decay
 
-Lambda = 0.3
-Nstart = 10
-
-numero = decay(Nstart, Lambda)[0]
-t = decay(Nstart, Lambda)[1]
-
-print(numero, len(numero), t, len(t))
-
+#3.1) Radioactive decay simulation
 """
-plt.scatter(t, numero, label=f'N(0) = {Nstart} and $\lambda$ = {Lambda}', color='blue', marker='o')
+Lambda = 0.1
+Nstart = 10**3
+
+result = decay(Nstart, Lambda)
+numero = result[0]
+t = result[1]
+
+
+plt.scatter(t, numero, label=f'N(0) = {Nstart},  $\lambda$ = {Lambda}', color='blue', marker='o')
 plt.xlabel('Time t')
 plt.ylabel('N(t)')
 plt.title('Simulation of radioactive decay')
 plt.legend()
 plt.show()                
+
+log_num = np.log(numero)
+
+
+params, covariance = curve_fit(line, t, log_num)
+
+plt.scatter(t, log_num, label=f'N(0) = {Nstart},  $\lambda$ = {Lambda}', color='blue', marker='o')
+plt.plot(t, line(t, *params), 'r', label='Linear Fit')
+plt.xlabel('Time t')
+plt.ylabel('ln( N(t) )')
+plt.title('Simulation of radioactive decay')
+plt.legend()
+plt.grid(True)
+plt.show()
 """
+
+#3.2) Varying N(0) and lambda
+
+multiple_plot([10, 100, 1000, 10000, 100000], [0.1, 0.1, 0.1, 0.1, 0.1] )
+
+multiple_plot([1000 for i in range(9)], [0.1*i for i in range(1,10)])
+
 
 
 

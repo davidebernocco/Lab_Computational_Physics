@@ -8,7 +8,13 @@ Library of self-made functions needed for the codes implemented for the exercise
 import random
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 from numba import jit, int32, float64
+
+
+@jit
+def line(x, m, q):
+    return m*x + q
 
 
 
@@ -104,10 +110,22 @@ def decay(Ni, l):
         t += 1
         can.append(Nleft)
         Time.append(t)
-        print(t, Nleft)
     return np.asarray(can[:-1], int32), np.asarray(Time[:-1], int32)
 
 
 
-
+def multiple_plot(lst, l):
+    for j in range(len(lst)):
+        pino = decay(lst[j], l[j])
+        pigna = pino[0]
+        ago = pino[1]
+        plt.scatter(ago, np.log(pigna), label=f'N(0) = {lst[j]},  $\lambda$ = {round(l[j],1)}', marker='o')
+        plt.xlabel('Time t')
+        plt.ylabel('ln( N(t) )')
+        plt.title('Simulation of radioactive decay')
+        plt.legend()
+        plt.grid(True)
+        del pino
+    plt.show()
+    return
 
