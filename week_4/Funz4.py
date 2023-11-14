@@ -12,7 +12,7 @@ from numba import njit
 @njit
 def RW_1D(N, x0, Pl):
     xi = x0
-    position = [x0]
+    position = [x0] 
     square_pos = [x0**2]
     for i in range(N):
         l = np.random.rand()
@@ -22,7 +22,7 @@ def RW_1D(N, x0, Pl):
             xi += 1
         position.append(xi)
         square_pos.append(xi**2)
-    return position, square_pos
+    return np.asarray(position, dtype=np.int32), np.asarray(square_pos, dtype=np.int32)
 
 
 
@@ -52,31 +52,5 @@ def RW1D_average(N_w, N, x0, Pl):
     average_x2 = cumul_x2 / N_w
 
     return position, square_pos, average_x, average_x2, average_x2 - average_x**2, P_N
-
-
-
-@njit
-def RW1D_averageBB(N_w, N, x0, Pl):
-    position = [[x0]] * N_w
-    square_pos = [[x0**2]] * N_w
-    #average_x = []
-    #average_x2 = []
-    #mean_square_displ = []
-    for i in range(1,N):
-        for j in range(N_w):
-            l = np.random.rand()
-            if l <= Pl:
-                position[j].append( position[j][i-1] - 1)
-            else:
-                position[j].append( position[j][i-1] + 1)
-            square_pos[j].append(position[j][i]**2)
-        #average_x.append(np.mean(position[:,i]))
-        #average_x2.append(np.mean(square_pos[:,i]))
-        #mean_square_displ.append(average_x2[i] - average_x[i]**2)
-    return position, square_pos #, average_x, average_x2, mean_square_displ
-          
-
-
-
 
 
