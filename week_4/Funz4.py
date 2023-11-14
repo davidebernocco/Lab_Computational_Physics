@@ -4,9 +4,9 @@ Library of self-made functions needed for the codes implemented for the exercise
 @author: david
 """
 
-import random
 import numpy as np
-from numba import njit, jit, int32, float64
+from numba import njit
+
 
 
 @njit
@@ -24,7 +24,59 @@ def RW_1D(N, x0, Pl):
         square_pos.append(xi**2)
     return position, square_pos
 
+
+
+@njit
 def RW1D_average(N_w, N, x0, Pl):
+    
+    position = np.full((N_w, N + 1), x0, dtype=np.int32)
+    square_pos = np.full((N_w, N + 1), x0**2, dtype=np.int32)
+    cumul_x = np.zeros(N, dtype=np.float32)
+    cumul_x2 = np.zeros(N, dtype=np.float32)
+    P_N = np.zeros(2*N +1, dtype=np.int32)
+
     for j in range(N_w):
-        
-            
+        xi = x0
+        l = np.random.uniform(0, 1, N)
+        for i in range(N):
+            if l[i] <= Pl:
+                xi -= 1
+            else:
+                xi += 1
+            position[j, i + 1] = xi
+            square_pos[j, i + 1] = xi**2
+            cumul_x[i] += xi
+            cumul_x2[i] += xi**2
+        P_N[N + xi] += 1
+    average_x = cumul_x / N_w
+    average_x2 = cumul_x2 / N_w
+
+    return position, square_pos, average_x, average_x2, average_x2 - average_x**2, P_N
+
+
+
+@njit
+def RW1D_averageBB(N_w, N, x0, Pl):
+    position = [[x0]] * N_w
+    square_pos = [[x0**2]] * N_w
+    #average_x = []
+    #average_x2 = []
+    #mean_square_displ = []
+    for i in range(1,N):
+        for j in range(N_w):
+            l = np.random.rand()
+            if l <= Pl:
+                position[j].append( position[j][i-1] - 1)
+            else:
+                position[j].append( position[j][i-1] + 1)
+            square_pos[j].append(position[j][i]**2)
+        #average_x.append(np.mean(position[:,i]))
+        #average_x2.append(np.mean(square_pos[:,i]))
+        #mean_square_displ.append(average_x2[i] - average_x[i]**2)
+    return position, square_pos #, average_x, average_x2, mean_square_displ
+          
+
+
+
+
+
