@@ -14,9 +14,13 @@ from Funz4 import  RW1D_average, iter_plot
 
 ocean = RW1D_average(100, 64, 0, 0.5)
 
-iter_plot(ocean[0], 64, 100, 0.5, 'Istantaneous position $x_i$')
+iter_plot(ocean, 0, 64, 100, 0.5, 'Istantaneous position $x_i$', False)
 
-iter_plot(ocean[1], 64, 100, 0.5, 'Istantaneous squared position $x_i ^2$')
+iter_plot(ocean, 1, 64, 100, 0.5, 'Istantaneous squared position $x_i ^2$', False)
+
+iter_plot(ocean, 0, 64, 100, 0.5, 'Istantaneous position $x_i$', True)
+
+iter_plot(ocean, 1, 64, 100, 0.5, 'Istantaneous squared position $x_i ^2$', True)
 
 
 

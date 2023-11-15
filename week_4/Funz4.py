@@ -56,16 +56,20 @@ def RW1D_average(N_w, N, x0, Pl):
 
 
 
-def iter_plot(vect, N, N_w, Pl, string):
+def iter_plot(vect, index, N, N_w, Pl, string, test):
     
     t = [i for i in range(N+1)]
     
     for i in range(N_w):
         
-        plt.plot(t, vect[i])
+        plt.plot(t, vect[index][i])
     plt.xlabel('Iteration steps i')
     plt.ylabel(string)
     plt.title(fr'1D Random Walks $P_{{\mathrm{{left}}}} = {Pl}$, $N = {N}$')
+    
+    if test:
+        plt.plot(t, [i*index for i in range(N+1)], color='red', label='Theoretical average')
+        plt.plot(t, np.insert(vect[2+index],0,0), color='black', label='Numerical average')
     plt.show()    
     
     return
