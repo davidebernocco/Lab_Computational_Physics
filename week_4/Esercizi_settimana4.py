@@ -3,49 +3,26 @@ Now I have to do everything from the beginning again
 
 @author: david
 """
-import random
-import numpy as np
-from numba import njit, jit, int32, float64
-import matplotlib.pyplot as plt
+
+from Funz4 import  RW1D_average, iter_plot
+#import matplotlib.pyplot as plt
 
 #-- ES 1 --
 #---------- 1D Random Walks (RW)
 
 # 1.1) Properties
 
-Prob_l = 0.5 # clearly:  Prob_r = 1 - Prob_l
+ocean = RW1D_average(100, 64, 0, 0.5)
 
-@njit
-def RW_1D(N, x0, Pl):
-    xi = x0
-    position = [x0]
-    square_pos = [x0**2]
-    steps = [0]
-    for i in range(N):
-        l = np.random.rand()
-        if l <= Pl:
-            xi -= 1
-        else:
-            xi += 1
-        position.append(xi)
-        square_pos.append(xi**2)
-        steps.append(i+1)
-    return position, square_pos, steps
+iter_plot(ocean[0], 64, 100, 0.5, 'Istantaneous position $x_i$')
 
-sea = RW_1D(64, 0, 0.5)
+iter_plot(ocean[1], 64, 100, 0.5, 'Istantaneous squared position $x_i ^2$')
 
 
-plt.plot(sea[2], sea[0], label=r'$P_{left}$ = 0.5 , N = 64')
-plt.xlabel('Iteration steps i')
-plt.ylabel('Istantaneous position $x_i$')
-plt.title('1D Random Walk')
-plt.legend()
-plt.show()    
 
-plt.plot(sea[2], sea[1], label=r'$P_{left}$ = 0.5 , N = 64')
-plt.xlabel('Iteration steps i')
-plt.ylabel('Istantaneous squared position $x_i ^2$')
-plt.title('1D Random Walk')
-plt.legend()
-plt.show()    
-    
+
+
+
+
+
+   

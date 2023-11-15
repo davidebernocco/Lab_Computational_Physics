@@ -6,6 +6,7 @@ Library of self-made functions needed for the codes implemented for the exercise
 
 import numpy as np
 from numba import njit
+import matplotlib.pyplot as plt
 
 
 
@@ -52,5 +53,28 @@ def RW1D_average(N_w, N, x0, Pl):
     average_x2 = cumul_x2 / N_w
 
     return position, square_pos, average_x, average_x2, average_x2 - average_x**2, P_N
+
+
+
+def iter_plot(vect, N, N_w, Pl, string):
+    
+    t = [i for i in range(N+1)]
+    
+    for i in range(N_w):
+        
+        plt.plot(t, vect[i])
+    plt.xlabel('Iteration steps i')
+    plt.ylabel(string)
+    plt.title(fr'1D Random Walks $P_{{\mathrm{{left}}}} = {Pl}$, $N = {N}$')
+    plt.show()    
+    
+    return
+
+
+
+
+
+
+
 
 
