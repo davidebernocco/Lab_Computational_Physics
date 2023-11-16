@@ -7,19 +7,21 @@ Now I have to do everything from the beginning again
 #Figures now render in the Plots pane by default.
 #To make them also appear inline in the Console,
 # uncheck "Mute Inline Plotting" under the Plots pane options menu.
+# COULD BE INTERESTING AND USEFUL FOR THE FUTURE LEARNING HOW TO HANDLE DICTIONARIES
+# OSS: If we are interested in reproducibility, it could be useful to fix a SEED in the prng!!!
 
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-from numba import jit, njit, int32
 import math
-from Funz2 import lin_cong_met_period, line,  momentum_order_k, BruteForce
+from Funz2 import lin_cong_met_period, line, BruteForce, PartialSums, Correlation_PS
+import time
 
-# COULD BE INTERESTING AND USEFUL FOR THE FUTURE LEARNING HOW TO HANDLE DICTIONARIES
 
-"""
-#-- ES 1 --
-#---------- Linear congruent method and periodicity
+
+#
+#-- ES 1 --  Linear congruent method and periodicity
+#
 
 x0 = 3
 a = 4
@@ -34,10 +36,9 @@ print('It has a finite period of: ', lst_LCM[1])
 
 
 
-#-- ES 2 --
-#---------- Intrinsic generators: uniformity and correlation (qualitative test)
-
-# OSS: If we are interested in reproducibility, it could be useful to fix a SEED in the prng!!!
+#
+#-- ES 2 -- Intrinsic generators: uniformity and correlation (qualitative test)
+# 
 
 num_rand = 1000
 data = np.random.rand(num_rand)
@@ -86,20 +87,25 @@ print('See the scatter plot generated above: "Correlation test - Pairs of consec
 print('If no ordered patterns appear in this plot, then the Intrinsic Pseudorandom numbers generator can be considered reliable.')
 print('The same trick could be performed pairing not consecutive numbers to check possible correlations on larger scales.')
 
-"""
-
-#-- ES 3 --
-#---------- Intrinsic generators: uniformity and correlation (quantitative test)
 
 
-#3.1.A) Brute force method: evaluation of k-momentum using several sequences of increasing length
+#
+#-- ES 3 -- Intrinsic generators: uniformity and correlation (quantitative test)
+#
 
-num_N = [20*i for i in range(1,5000)]
+
+# ---- 3.1.A) Brute force method: evaluation of k-momentum using several sequences of increasing length
+
+num_N = np.asarray([20*i for i in range(1,5000)], dtype=np.int32)
+
+start_time1 = time.time()
+#The function "momentum_order_k" is used to evaluate the k-th moment of each of the distributions with lenght in num_N
+#The function BruteForce called here uses "momentum_order_k" to compare the moments to the corresponding theoretical values
 menu_k1 = BruteForce(num_N, 1)
 menu_k3 = BruteForce(num_N, 3)
 menu_k7 = BruteForce(num_N, 7)
 
-
+#Plotting altogether the ln(deviations) vs ln(N) for the three chosen moments k = 1, 3, 7
 plt.scatter(np.log(num_N), np.log(menu_k1), color='orange', marker='+', label=r'$\Delta_{N}(k=1)$')
 plt.scatter(np.log(num_N), np.log(menu_k3), color='olive', marker='o', label=r'$\Delta_{N}(k=3)$')
 plt.scatter(np.log(num_N), np.log(menu_k7), color='blue', marker='*', label=r'$\Delta_{N}(k=7)$')
@@ -110,21 +116,27 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
+end_time1 = time.time()
+elapsed_time1 = end_time1 - start_time1
+print(f"Elapsed time Brute force: {elapsed_time1:.4f} seconds")
 
-#3.1.B) Partial sums method: evaluation of k-moment using a single sequence
-"""
+print('\n---------- Exercise 3.1.A, 2nd week:-----------')
+print('\nQuantitative test for the Uniformity of the distribution (from intrinsic python generator).')
+print('See the plot "Uniformity test - Brute force method". ')
+print('The moments of order k are evaluated for uniform-generated distributions of increasing lenght.')
+print('Then the (logarithm of the) deviation from the theoretical expected values are plotted versus (the logarithm of) N.')
+print('We expect a ~ 1/sqrt(N) behaviour. The average slope of the log plot, being close the ideal value of -1/2 (k = {1: "+", 3: "o", 7: "*" }) confirms in a more formal way the capability of the intrinsic generator of providing uniform distributions.')
+
+
+
+# ---- 3.1.B) Partial sums method: evaluation of k-moment using a single sequence
+
 Data = np.random.rand(num_N[-1])
-population = [i for i in range(1,len(Data)+1)] 
+population = np.asarray([i for i in range(1,len(Data)+1)], dtype=np.int32) 
 
-@njit
-def PartialSums(lst, k):
-    dinner = []
-    claw = 0
-    for i in range(len(lst)):
-        claw = claw + lst[i]**k
-        dinner.append(abs(claw/(i+1) - (1/(1+k)) ))
-    return dinner
- 
+start_time2 = time.time()
+#More clever (and faster!!) way of performing the quantitative test for uniformity 
+#The function PartialSums just needs a single sequence of numbers and progressively evaluates the deviations
 plt.scatter(np.log(population), np.log(PartialSums(Data, 1)), color='magenta', marker='+', label=r'$\Delta_{N}(k=1)$')
 plt.scatter(np.log(population), np.log(PartialSums(Data, 3)), color='green', marker='o', label=r'$\Delta_{N}(k=3)$')
 plt.scatter(np.log(population), np.log(PartialSums(Data, 7)), color='cyan', marker='*', label=r'$\Delta_{N}(k=7)$')
@@ -135,27 +147,39 @@ plt.legend()
 plt.grid(True)
 plt.show()
 
+end_time2 = time.time()
+elapsed_time2 = end_time2 - start_time2
+print(f"Elapsed time Partial sums: {elapsed_time2:.4f} seconds")
 
-#3.2 Correlation test using directly the Partial sums method
+print('\n---------- Exercise 3.1.B, 2nd week:-----------')
+print('\nQuantitative test for the Uniformity of the distribution (from intrinsic python generator).')
+print('See the plot "Uniformity test -Partial sums". ')
+print('The moments of order k are evaluated for a single uniform-generated distribution applying partial sums.')
+print('Then the (logarithm of the) deviation from the theoretical expected values are plotted versus (the logarithm of) N.')
+print('We expect a ~ 1/sqrt(N) behaviour. The average slope of the log plot, being close the ideal value of -1/2 (k = {1: "+", 3: "o", 7: "*" }) confirms here as well in a more formal way the capability of the intrinsic generator of providing uniform distributions.')
 
-@njit
-def Correlation_PS(lst, k):
-    population = [i for i in range(1+k,len(Data)+1)] 
-    dinner = []
-    claw = 0
-    for i in range(len(lst)-k):
-        claw = claw + lst[i]*lst[i+k]
-        dinner.append(abs(claw/(i+1) - 1/4 ))
-    return population, dinner, claw/(i+1)
 
-plt.scatter(np.log(Correlation_PS(Data, 1)[0]), np.log(Correlation_PS(Data, 1)[1]), color='maroon', marker='+', label=r'$\Delta_{N}(k=1)$')
-plt.scatter(np.log(Correlation_PS(Data, 3)[0]), np.log(Correlation_PS(Data, 3)[1]), color='lime', marker='o', label=r'$\Delta_{N}(k=3)$')
-plt.scatter(np.log(Correlation_PS(Data, 7)[0]), np.log(Correlation_PS(Data, 7)[1]), color='navy', marker='*', label=r'$\Delta_{N}(k=7)$')
+
+# ---- 3.2) Correlation test using directly the Partial sums method
+
+Corr_a = Correlation_PS(Data, 1)
+Corr_b = Correlation_PS(Data, 4)
+Corr_c = Correlation_PS(Data, 9)
+
+#Here a quantitative correlation test is carried out using the Partial Sum method
+plt.scatter(np.log(Corr_a[0]), np.log(Corr_a[1]), color='maroon', marker='+', label=r'$\Delta_{N}(k=1)$')
+plt.scatter(np.log(Corr_b[0]), np.log(Corr_b[1]), color='lime', marker='o', label=r'$\Delta_{N}(k=3)$')
+plt.scatter(np.log(Corr_c[0]), np.log(Corr_c[1]), color='navy', marker='*', label=r'$\Delta_{N}(k=7)$')
 plt.xlabel('log(N)')
 plt.ylabel('log(Delta)')
 plt.title('Correlation test - Partial sums')
 plt.legend()
 plt.grid(True)
 plt.show()
-"""
 
+print('\n---------- Exercise 3.2, 2nd week:-----------')
+print('\nQuantitative test for the Correlation of the distribution (from intrinsic python generator).')
+print('See the plot "Correlation test -Partial sums". ')
+print('Correlations are evaluated for a single uniform-generated distribution applying partial sums choosing different "correlation ranges" .')
+print('Then the (logarithm of the) deviation from the theoretical expected values are plotted versus (the logarithm of) N.')
+print('We expect a ~ 1/sqrt(N) behaviour. The average slope of the log plot, being close the ideal value of -1/2 confirms here as well in a more formal way the capability of the intrinsic generator of providing uncorrelated distributions.')

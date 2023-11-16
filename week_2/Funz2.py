@@ -3,7 +3,7 @@ Now I have to do everything from the beginning again
 
 @author: david
 """
-from numba import jit, njit, int32, config
+from numba import jit, njit, int32
 import numpy as np
 
 
@@ -50,13 +50,34 @@ def momentum_order_k(lst, k):
 
 
 @njit
-def BruteForce(lst_n, k):
+def BruteForce(vet_n, k):
     spaghetti = []
-    for i in lst_n:
+    for i in vet_n:
         bait = np.random.rand(i)
         fish = momentum_order_k(bait, k)
         spaghetti.append(fish[1])
-    return spaghetti
+    return np.asarray(spaghetti, dtype=np.float64)
 
 
+
+@njit
+def PartialSums(lst, k):
+    dinner = []
+    claw = 0
+    for i in range(len(lst)):
+        claw = claw + lst[i]**k
+        dinner.append(abs(claw/(i+1) - (1/(1+k)) ))
+    return  np.asarray(dinner, dtype=np.float64)
+
+
+
+@njit
+def Correlation_PS(lst, k):
+    population = [i for i in range(1+k,len(lst)+1)] 
+    dinner = []
+    claw = 0
+    for i in range(len(lst)-k):
+        claw = claw + lst[i]*lst[i+k]
+        dinner.append(abs(claw/(i+1) - 1/4 ))
+    return np.asarray(population, dtype=np.int32), np.asarray(dinner, dtype=np.float64)
 
