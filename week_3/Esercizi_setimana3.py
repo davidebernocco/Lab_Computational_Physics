@@ -14,9 +14,10 @@ from Funz3 import boxmuller, R, var_x, decay, line, multiple_plot
 
 
 
-#-- ES 1 --
-#---------- Random numbers with non-uniform distribution: Inverse Trasformation Method (ITM)
-"""
+#
+#-- ES 1 -- Random numbers with non-uniform distribution: Inverse Trasformation Method (ITM)
+#
+
 num_rand = 10**6
 data = np.random.rand(num_rand)
 a=3
@@ -28,7 +29,7 @@ bins = int((max(data) - min(data)) / (2 * IQR * len(data)**(-1/3)))
 hist, bins = np.histogram(exp_data, bins, density=False)
 bin_centers = (bins[:-1] + bins[1:]) / 2
 bin_widths = np.diff(bins)
-density = hist / sum(hist)
+density = hist / (num_rand * bin_widths[0])
 
 plt.bar(bins[:-1], density, width=bin_widths, alpha=0.5, color='b', label='$p(x) = 3e^{-3x}$')
 plt.xlabel('Counts')
@@ -38,7 +39,8 @@ plt.legend()
 plt.grid()
 plt.show()
 
-log_counts = np.log(hist / sum(hist))
+#Here the logarithm of the columns is taken, adding a small quantity of 1**(-10) not to have issues associated to empty bins
+log_counts = np.log((hist + 1**(-10)) / (num_rand * bin_widths[0]))
 
 plt.bar(bins[:-1], log_counts, width=bin_widths, alpha=0.5, color='b')
 plt.xlabel('Counts')
@@ -65,14 +67,14 @@ plt.title('Histogram with Linear Fit')
 plt.legend()
 plt.grid(True)
 plt.show()
-"""
 
 
 
-#-- ES 2 --
-#---------- Random numbers with non-uniform distribution: comparison between different algorithms
+#
+#-- ES 2 -- Random numbers with non-uniform distribution: comparison between different algorithms
+# 
 
-#2.1) with ITM
+# ---- 2.1) with ITM
 """
 num_rand = 10**6
 
@@ -101,7 +103,8 @@ elapsed_time1 = end_time1 - start_time1
 print(f"Elapsed time1: {elapsed_time1:.4f} seconds")
 
 
-#2.2) with an algorithm that uses only elementary operations
+# ---- 2.2) with an algorithm that uses only elementary operations
+
 start_time2 = time.time()
 varU = np.random.rand(num_rand)
 varV = np.random.rand(num_rand)
@@ -131,8 +134,9 @@ print(f"Elapsed time2: {elapsed_time2:.4f} seconds")
 
 
 
-#-- ES 3 --
-#---------- Random numbers with gaussian distribution: the box Muller algorithm
+#
+#-- ES 3 -- Random numbers with gaussian distribution: the box Muller algorithm
+# 
 
 # OSS: with the algoritms 3.1 and 3.2 showed in the Appendix_3 file,  we end up each time with two statistically independent and normal-distributed variables.
 # If the goal is producing a single set of random variables as usual, this procedure is evedently inefficient!
@@ -167,10 +171,12 @@ print(f"Elapsed time5: {elapsed_time5:.5f} seconds")
 """
 
 
-#-- ES 3 --
-#---------- Simulation of radioactive decay
 
-#3.1) Radioactive decay simulation
+#
+#-- ES 4 -- Simulation of radioactive decay
+# 
+
+# ---- 3.1) Radioactive decay simulation
 """
 Lambda = 0.1
 Nstart = 10**3
@@ -202,12 +208,13 @@ plt.grid(True)
 plt.show()
 """
 
-#3.2) Varying N(0) and lambda
+"""
+# ---- 3.2) Varying N(0) and lambda
 
 multiple_plot([10, 100, 1000, 10000, 100000], [0.1, 0.1, 0.1, 0.1, 0.1] )
 
 multiple_plot([1000 for i in range(9)], [0.1*i for i in range(1,10)])
-
+"""
 
 
 
