@@ -5,16 +5,18 @@ Library of self-made functions needed for the codes implemented for the exercise
 """
 
 import numpy as np
-from numba import njit
+from numba import njit, jit
 import matplotlib.pyplot as plt
 
 
 
 @njit
 def RW_1D(N, x0, Pl):
+    
     xi = x0
     position = [x0] 
     square_pos = [x0**2]
+    
     for i in range(N):
         l = np.random.rand()
         if l <= Pl:
@@ -23,6 +25,7 @@ def RW_1D(N, x0, Pl):
             xi += 1
         position.append(xi)
         square_pos.append(xi**2)
+        
     return np.asarray(position, dtype=np.int32), np.asarray(square_pos, dtype=np.int32)
 
 
@@ -60,25 +63,87 @@ def iter_plot(vect, index, N, N_w, Pl, string, test):
     
     t = [i for i in range(N+1)]
     
-    for i in range(N_w):
-        
+    for i in range(N_w):    
         plt.plot(t, vect[index][i])
+        
     plt.xlabel('Iteration steps i')
     plt.ylabel(string)
-    plt.title(fr'1D Random Walks $P_{{\mathrm{{left}}}} = {Pl}$, $N = {N}$')
+    #plt.title(fr'1D Random Walks $P_{{\mathrm{{left}}}} = {Pl}$, $N = {N}$')
     
     if test:
         plt.plot(t, [i*index for i in range(N+1)], color='red', label='Theoretical average')
         plt.plot(t, np.insert(vect[2+index],0,0), color='black', label='Numerical average')
+        plt.legend()
+        
     plt.show()    
     
     return
 
 
 
+@jit
+def line(x, m, q):
+    
+    return m*x + q
 
 
 
 
+@jit
+def Accuracy(steps, acc, x0, N, Nw0, passo, Pl):
+    
+    N_wIdeal = 0
+    
+    for k in range(steps):
+        
+        delta = acc+1
+        N_w = Nw0
+        cumul_xN = 0
+        cumul_x2N = 0
+        average_xN = 0
+        average_x2N = 0
+        t = 0
+        
+        while delta > acc:
+            
+            for j in range(N_w):
+                
+                xi = x0
+                l = np.random.uniform(0, 1, N)
+                
+                for i in range(N):  
+                    if l[i] <= Pl:
+                        xi -= 1
+                    else:
+                        xi += 1
+                cumul_xN += xi
+                cumul_x2N += xi**2
+              
+            average_xN =  cumul_xN / (Nw0 + passo * t)
+            average_x2N = cumul_x2N /(Nw0 + passo * t)
+            msd = average_x2N - average_xN**2
+            delta = abs(msd/N - 1)
+            N_w = passo
+            t += 1
+            
+        Nw_fin = Nw0 + passo * (t-1)
+        
+        N_wIdeal += Nw_fin
+    
+    return N_wIdeal/steps
 
 
+
+def graphDeltaN():
+    
+    metro = [i for i in range(10, 500, 10)]
+    inch = []
+    for k in metro:
+        inch.append(Accuracy(1000, 0.05, 0, k, 10, 10, 0.5))
+    plt.plot(metro, inch)
+    plt.xlabel('N')
+    plt.ylabel(r'$N_{walkers}^{min}$', fontsize=12)
+    plt.grid(True)
+    plt.show()
+    
+    return
