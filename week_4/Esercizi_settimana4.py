@@ -4,7 +4,7 @@ Now I have to do everything from the beginning again
 @author: david
 """
 
-from Funz4 import  RW1D_average, iter_plot, line, Accuracy, graphDeltaN
+from Funz4 import  RW1D_average, iter_plot, line, Accuracy, graphNwalk_N,  graphMsdN
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
@@ -68,14 +68,17 @@ plt.show()
 """
 
 
-# ---- 1.3) and 1.4) Accuracy of the mean squared distance
+# ---- 1.3) and 1.4) Accuracy of the mean square distance
 """
 minimum_Nwalk = Accuracy(100000, 0.05, 0, 64, 10, 10, 0.5)
    
-plot_varyN = graphDeltaN()
+plot_varyingN = graphNwalk_N()
 """
 
 
 
-
+# ---- 1.5) Dependence of the Mean square distance on N
+"""
+plot_MSDvsN = graphMsdN()
+"""
 

@@ -7,6 +7,7 @@ Library of self-made functions needed for the codes implemented for the exercise
 import numpy as np
 from numba import njit, jit
 import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
 
 
 
@@ -134,7 +135,7 @@ def Accuracy(steps, acc, x0, N, Nw0, passo, Pl):
 
 
 
-def graphDeltaN():
+def graphNwalk_N():
     
     metro = [i for i in range(10, 500, 10)]
     inch = []
@@ -147,3 +148,26 @@ def graphDeltaN():
     plt.show()
     
     return
+
+
+
+def graphMsdN():
+    
+    kilo = np.asarray([2**i for i in range(3, 8)], dtype=np.int32)
+    pound = np.asarray([], dtype=np.float64)
+    for k in kilo:
+        pound = np.append( pound, RW1D_average(160, k, 0, 0.5)[4][-1])
+    log_kilo = np.log(kilo)
+    log_pound = np.log(pound)
+    
+    par, cov = curve_fit(line, log_kilo, log_pound)
+
+    plt.scatter(log_kilo, log_pound, label='Data', color='black')
+    plt.plot(log_kilo, line(log_kilo, *par), color='red', label='Linear Fit')
+    plt.xlabel(r'$ln{N}$', fontsize=12)
+    plt.ylabel(r'$ln{\langle (\Delta x)^2 \rangle}$', fontsize=12)
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+    
+    return par, cov
