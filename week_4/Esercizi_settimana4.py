@@ -4,7 +4,7 @@ Now I have to do everything from the beginning again
 @author: david
 """
 
-from Funz4 import  RW1D_average, iter_plot, line, Accuracy, graphNwalk_N,  graphMsdN
+from Funz4 import  RW1D_average, iter_plot, line, Accuracy, graphNwalk_N,  graphMsdN, Histo_gauss, RW1D_average_random_l
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
@@ -76,9 +76,21 @@ plot_varyingN = graphNwalk_N()
 """
 
 
-
 # ---- 1.5) Dependence of the Mean square distance on N
 """
 plot_MSDvsN = graphMsdN()
+"""
+
+
+# ---- 1.6) Distribution P_N(x)
+"""
+plot_Histo = Histo_gauss()
+"""
+
+
+# ---- 1.7) RW with steps of different lenght (taken from a certain distribution, no more 1 constant!)
+"""
+random_l = RW1D_average_random_l(10000, 64, 0, 0.5)
+#From this tuple we can repeat all the procedures done from 1.1 to 1.7. Just play!
 """
 
