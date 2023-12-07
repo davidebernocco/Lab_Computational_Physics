@@ -52,4 +52,79 @@ def int_Simpson(num, I): # N.B. Unlike the "trpazoidal method" here the number o
 
 
 
+@njit
+def int_sample_mean(num):
+    
+    results = np.zeros(len(num), dtype = np.float32)
+    results_2 = np.zeros(len(num), dtype = np.float32)
+    Sigma_n = np.zeros(len(num), dtype = np.float32)
+    Actual_err = np.zeros(len(num), dtype = np.float32)
+    
+    for j in range(len(num)):
+        x = np.random.uniform(0, 1, num[j])
+        somma = 0
+        somma_2 = 0
+    
+        for i in range(len(x)):
+            somma += (math.e ** (-x[i] ** 2) )
+            somma_2 += (math.e ** (-x[i] ** 2) ) ** 2
+        
+        results[j] = somma/num[j]
+        results_2[j] = somma_2/num[j]
+        Sigma_n[j] = somma_2/num[j] - (somma/num[j])**2
+        Actual_err[j] = Sigma_n[j]/math.sqrt(num[j])
+        
+    return results, Sigma_n, Actual_err
+
+
+
+@njit
+def int_importance_sampl(num):
+    
+    results = np.zeros(len(num), dtype = np.float32)
+    results_2 = np.zeros(len(num), dtype = np.float32)
+    Sigma_n = np.zeros(len(num), dtype = np.float32)
+    Actual_err = np.zeros(len(num), dtype = np.float32)
+    
+    for j in range(len(num)):
+        data = np.random.uniform(1 / (math.e - 1), math.e / (math.e - 1), num[j])
+        x = -np.log( ((math.e - 1) / math.e) * data )
+        somma = 0
+        somma_2 = 0
+    
+        for i in range(len(x)):
+            somma += (math.e ** (-x[i] ** 2) ) / ( (math.e/(math.e - 1)) * (math.e ** (-x[i])))
+            somma_2 += (math.e ** (-x[i] ** 2) / ( (math.e/(math.e - 1)) * (math.e ** (-x[i])))) ** 2
+        
+        results[j] = somma/num[j]
+        results_2[j] = somma_2/num[j]
+        Sigma_n[j] = somma_2/num[j] - (somma/num[j])**2
+        Actual_err[j] = Sigma_n[j]/math.sqrt(num[j])
+        
+    return results, Sigma_n, Actual_err
+
+
+@njit
+def int_acc_rejec(num, N_rep):
+    
+    results =np.full((N_rep, len(num)), 0, dtype = np.float32)
+    cumul_res = np.zeros(len(num), dtype = np.float32)
+    
+    I = math.pi
+    for k in range(N_rep):
+        
+        for j in range(len(num)):
+            points = np.random.rand(2*num[j])
+            n_acc = 0
+            
+            for i in range( int(len(points)/2) ):
+                if points[2*i + 1] < math.sqrt(1 - points[2*i]**2):
+                    n_acc += 1
+                    
+            results[k, j] = 4 * (n_acc / num[j])
+            cumul_res[j] += 4 * (n_acc / num[j])
+            
+        delta_average = np.abs(cumul_res/N_rep - I)
+    
+    return results, delta_average
 
