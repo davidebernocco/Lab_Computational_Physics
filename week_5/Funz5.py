@@ -4,7 +4,7 @@ Library of self-made functions needed for the codes implemented for the exercise
 @author: david
 """
 
-from numba import jit, njit
+from numba import njit
 import numpy as np
 import math 
 
@@ -150,9 +150,33 @@ def average_of_averages(num, m, func):
             somma += func(x[i])  
             somma_2 += func(x[i])**2 
         
-        aver[j] = somma / num
+        aver[j] = 4*( somma / num )
         aver_2[j] = aver[j]**2
         
     Sigma_m = math.sqrt( np.mean(aver_2) - (np.mean(aver))**2 )        
         
     return aver, Sigma_m
+
+
+
+def block_average(num, s, func):
+    
+    aver = np.zeros(s, dtype = np.float32)
+    aver_2 = np.zeros(s, dtype = np.float32)
+    cumul = np.zeros(s, dtype = np.float32)
+    block_size = int(num / s)
+    
+    x = np.random.uniform(0, 1, num)
+    
+    for k in range(s):
+        
+        for i in range(block_size):
+            
+            cumul[k] += 4* func(x[k*block_size + i])  
+        
+    aver = cumul / block_size
+    aver_2 = (cumul / block_size) ** 2
+        
+    Sigma_s = math.sqrt( np.mean(aver_2) - (np.mean(aver))**2 )      
+        
+    return aver, Sigma_s / math.sqrt(s)
