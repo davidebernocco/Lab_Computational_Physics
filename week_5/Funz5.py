@@ -53,11 +53,12 @@ def int_Simpson(num, I): # N.B. Unlike the "trpazoidal method" here the number o
 
 
 @njit
-def int_sample_mean(num):
+def int_sample_mean(num, func, condition, I):
     
     results = np.zeros(len(num), dtype = np.float32)
     results_2 = np.zeros(len(num), dtype = np.float32)
     Sigma_n = np.zeros(len(num), dtype = np.float32)
+    Sigma_n_su_radq_n = np.zeros(len(num), dtype = np.float32)
     Actual_err = np.zeros(len(num), dtype = np.float32)
     
     for j in range(len(num)):
@@ -66,15 +67,19 @@ def int_sample_mean(num):
         somma_2 = 0
     
         for i in range(len(x)):
-            somma += (math.e ** (-x[i] ** 2) )
-            somma_2 += (math.e ** (-x[i] ** 2) ) ** 2
+            somma += func(x[i])  #(math.e ** (-x[i] ** 2) )
+            somma_2 += func(x[i])**2 #(math.e ** (-x[i] ** 2) ) ** 2
         
         results[j] = somma/num[j]
         results_2[j] = somma_2/num[j]
-        Sigma_n[j] = somma_2/num[j] - (somma/num[j])**2
-        Actual_err[j] = Sigma_n[j]/math.sqrt(num[j])
+        Sigma_n[j] = math.sqrt(somma_2/num[j] - (somma/num[j])**2)
+        Sigma_n_su_radq_n[j] = Sigma_n[j] / math.sqrt(num[j])
         
-    return results, Sigma_n, Actual_err
+    
+        if condition:
+            Actual_err[j] = np.abs( results[j] - I )
+        
+    return results, Sigma_n, Sigma_n_su_radq_n, Actual_err
 
 
 
@@ -98,10 +103,11 @@ def int_importance_sampl(num):
         
         results[j] = somma/num[j]
         results_2[j] = somma_2/num[j]
-        Sigma_n[j] = somma_2/num[j] - (somma/num[j])**2
+        Sigma_n[j] = math.sqrt(somma_2/num[j] - (somma/num[j])**2)
         Actual_err[j] = Sigma_n[j]/math.sqrt(num[j])
         
     return results, Sigma_n, Actual_err
+
 
 
 @njit
@@ -128,3 +134,25 @@ def int_acc_rejec(num, N_rep):
     
     return results, delta_average
 
+
+
+def average_of_averages(num, m, func):
+    
+    aver = np.zeros(m, dtype = np.float32)
+    aver_2 = np.zeros(m, dtype = np.float32)
+    
+    for j in range(m):
+        x = np.random.uniform(0, 1, num)
+        somma = 0
+        somma_2 = 0
+    
+        for i in range(len(x)):
+            somma += func(x[i])  
+            somma_2 += func(x[i])**2 
+        
+        aver[j] = somma / num
+        aver_2[j] = aver[j]**2
+        
+    Sigma_m = math.sqrt( np.mean(aver_2) - (np.mean(aver))**2 )        
+        
+    return aver, Sigma_m
