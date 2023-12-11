@@ -121,10 +121,10 @@ def RW_2D_plot(Opera, plot_name):  #Plotting the gif of all the walkers justappo
      
            
 
-VonKarajan = RW2D_average(10, 64, 0, 0, 0.25, 0.25, 0.25, False)
+VonKarajan = RW2D_average(10000, 64, 0, 0, 0.25, 0.25, 0.25, False)
 
 RW_2D_plot(VonKarajan, '2D_RW.gif')
-
+plt.close('all')
 
 
 # Normalized Histogram - distribution of position at the end of the walkers
@@ -141,7 +141,6 @@ plt.xlabel('r(N)')
 plt.ylabel('Probability Density')
 plt.legend()
 plt.grid()
-plt.switch_backend('TkAgg')
 plt.show()
 
 
@@ -157,11 +156,11 @@ plt.grid(True)
 plt.show()
 
 
-"""
-Mozart = RW2D_average(1000, 64, 0, 0, 0, 0, 0, True)
+
+Mozart = RW2D_average(10000, 64, 0, 0, 0, 0, 0, True)
 
 RW_2D_plot(Mozart, '2D_RW_continuous.gif')
-
+plt.close('all')
 
 # Normalized Histogram - distribution of position at the end of the walkers
 IQR = np.percentile(Mozart[3], 75) - np.percentile(Mozart[3], 25)
@@ -189,7 +188,7 @@ plt.ylabel(r'$\langle (\Delta r_{i})^2 \rangle^{num}$', fontsize=12)
 plt.legend()
 plt.grid(True)
 plt.show()
-"""
+
 
 # -------------------------------------------------------------------------------
 # ----- Easy example of gif animation with python:
