@@ -57,7 +57,7 @@ def RW2D_average(N_w, N, x0, y0, Pl, Pr, Pd, Theta):  # 2D analogous of the "RW1
         
             P_N[j] = math.sqrt(xi**2 + yi**2)   
                      
-    else:
+    else:    # For 2D random unit steps (on the unitary circle)
         
         for j in range(N_w):
             
