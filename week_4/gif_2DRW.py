@@ -6,80 +6,102 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-from Funz4 import RW2D_average, RW_2D_plot
+from Funz4 import RW2D_average, RW_2D_plot, line
+from lattice_PN import Prob_distr_lattice
+from scipy.optimize import curve_fit
+
 
 # -----------------------------
 # ---- A) On a square lattice
-"""
-VonKarajan = RW2D_average(5000, 32, 0, 0, 0.25, 0.25, 0.25, False)
 
+
+VonKarajan = RW2D_average(1000, 64, 0, 0, 0.25, 0.25, 0.25, False)
+
+
+"""
 RW_2D_plot(VonKarajan, '2D_RW.gif')
 plt.close('all')
+"""
 
 
-# Create an example array with real numbers
-original_array = VonKarajan[3]
+original_array = VonKarajan[3]  # Define an array
 
-# Use NumPy's unique function to get unique entries and their indices
-unique_entries, indices = np.unique(original_array, return_inverse=True)
+unique_entries, indices = np.unique(original_array, return_inverse=True)  # Use NumPy's unique function to get unique entries and their indices
 
-# Create a dictionary to store separated arrays
-separated_arrays = {}
+separated_arrays = {}  # Create a dictionary to store separated arrays
 
-# Iterate through unique entries and populate the dictionary
-for entry in unique_entries:
+for entry in unique_entries:   # Iterate through unique entries and populate the dictionary
     separated_arrays[entry] = original_array[np.isclose(original_array, entry)]
 
-# Print the separated arrays
-bins = np.asarray([], dtype=np.float32)
+Bins = np.asarray([], dtype=np.float32)
 columns = np.asarray([], dtype=np.int32)
-for entry, array in separated_arrays.items():
-    bins = np.append(bins, entry)
+for entry, array in separated_arrays.items():   # Print the separated arrays
+    Bins = np.append(Bins, entry)
     columns = np.append(columns, len(array))
-#print(bins, columns)
 
 
-# Normalized Histogram - distribution of position at the end of the walkers
-density = columns / (len(VonKarajan[3])*0.1)
+# Normalized distribution of position at the end of the walkers
+density = columns / (len(VonKarajan[3]))
+Clessidra = Prob_distr_lattice(64)
 
-plt.bar(bins, density, width=0.1, alpha=0.5, color='b', label=r'$P_{N}(r)^{num}$')
+plt.scatter(Bins, density, color='magenta', label=r'$P_{N}(r)^{theo}$', marker='^', s=50)
 plt.xlabel('r(N)')
 plt.ylabel('Probability Density')
 plt.grid()
-x = np.linspace(0, bins[-1], 1000)
-Rayleigh = lambda x: (2*x/32)* math.e **(-x**2 / 32)
-plt.plot(x, Rayleigh(x), label=r'$P_{N}(r)^{theo}$', color='black')
+
+plt.scatter(Clessidra[0], Clessidra[1], label=r'$P_{N}(r)^{theo}$', color='blue', marker='o', s=50)
 plt.legend()
 plt.show()
+
+
+
+#Histogram for the square lattice case
+positions = Bins
+column_heights = columns/10000
+
+bin_edges = np.arange(0, max(positions) + 2, 1)
+hist, _ = np.histogram(positions, bins=bin_edges, weights=column_heights)
+bin_centers = (bin_edges[:-1] + bin_edges[1:]) / 2  
+
+plt.bar(bin_centers, hist, width=1, edgecolor='black')
+plt.xlabel('r(N)')
+plt.ylabel('Probability distribution')
+
+x = np.linspace(0, Bins[-1], 1000)
+Rayleigh = lambda x: (2*x/32)* math.e **(-x**2 / 32)
+plt.plot(x, Rayleigh(x), label=r'$P_{N}(r)^{theo}$', color='black')
+
+plt.show()
+
+
 
 
 # Plot - Mean square position over N
-t = np.array([i for i in range(1,33)])
+t = np.array([i for i in range(1,65)])
+params, covariance = curve_fit(line,np.log(t),np.log(VonKarajan[2]))
 
-plt.scatter(t, VonKarajan[2], color='black')
-plt.xlabel('i')
-plt.ylabel(r'$\langle (\Delta r_{i})^2 \rangle^{num}$', fontsize=12)
+plt.scatter(np.log(t),np.log(VonKarajan[2]), label='Square lattice', color='black', marker="s")
+plt.plot(np.log(t), line(np.log(t), *params), color='blue', label='Linear Fit')
+plt.xlabel('ln(i)', fontsize=12)
+plt.ylabel(r'ln($\langle (\Delta r_{i})^2 \rangle^{num}$)', fontsize=12)
 plt.legend()
 plt.grid(True)
 plt.show()
-"""
-somma = 0
-N=8
-a=1
-b=1
-for i in range(a,N-b):
-    somma += math.comb(i, int((i+a)/2)) * math.comb(8-i, int((8-i+b)/2))
-    
-print(somma/ (4**N))
+
+
+
+
 
 # -----------------------------
 # ---- B) With unit random steps (on the unitary circle theta belonging to [0, 2PI[ )
 
 """
-Mozart = RW2D_average(5000, 64, 0, 0, 0, 0, 0, True)
+Mozart = RW2D_average(160, 64, 0, 0, 0, 0, 0, True)
+
 
 RW_2D_plot(Mozart, '2D_RW_continuous.gif')
 plt.close('all')
+
 
 # Normalized Histogram - distribution of position at the end of the walkers
 IQR = np.percentile(Mozart[3], 75) - np.percentile(Mozart[3], 25)
@@ -103,15 +125,40 @@ plt.show()
 
 # Plot - Mean square position over N
 t = np.array([i for i in range(1,65)])
+params2, covariance2 = curve_fit(line, np.log(t),np.log(Mozart[2]))
 
-plt.scatter(t, Mozart[2], color='black')
-plt.xlabel('i')
-plt.ylabel(r'$\langle (\Delta r_{i})^2 \rangle^{num}$', fontsize=12)
+plt.scatter(np.log(t),np.log(Mozart[2]), label=r'direction in $[0, 2\pi[ $', color='black', marker="o")
+plt.plot(np.log(t), line(np.log(t), *params2), color='red', label='Linear Fit')
+plt.xlabel('ln(i)', fontsize=12)
+plt.ylabel(r'ln($\langle (\Delta r_{i})^2 \rangle^{num})$', fontsize=12)
 plt.legend()
 plt.grid(True)
 plt.show()
 """
 
+
+
+#Square lattice wirh relevant points
+"""
+x_values = [0,2,4,6,8,1,3,5,7,2,4,6,3,5,4]
+y_values = [0,0,0,0,0,1,1,1,1,2,2,2,3,3,4]
+labels = ['{0,2,4,6,8}', '{2,4,6,8}', '{4,6,8}', '{6,8}', '{8}', '{1,3,5,7}', '{3,5,7}', '{5,7}', '{7}', '{2,4,6}', '{4,6}', '{6}', '{3,5}', '{5}', '{4}']
+
+# Create a scatter plot
+plt.scatter(x_values, y_values, s=150)
+
+# Add labels to each point
+for i, label in enumerate(labels):
+    plt.text(x_values[i], y_values[i], label, fontsize=30, ha='left', va='bottom')
+
+# Add labels, title, etc.
+plt.xlabel('x', fontsize=25)
+plt.ylabel('y', fontsize=25)
+plt.yticks(np.arange(0, 5, 1), fontsize=30)
+plt.xticks(fontsize=30)
+plt.grid(True)
+plt.show()
+"""
 
 
 
