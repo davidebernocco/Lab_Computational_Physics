@@ -245,6 +245,7 @@ def RW1D_average_random_l(N_w, N, x0, Pl):
 
 
 
+
 # -----------------------------------------------------------------------------
 # ----------- Functions for the 2d_RW part:
 
@@ -347,7 +348,7 @@ def RW_2D_plot(Opera, plot_name):  #Plotting the gif of all the walkers justappo
     plt.gca().set_aspect('equal', adjustable='box')
     
     metadata = dict(title='Movie', artist='codinglikened')
-    writer = PillowWriter(fps=1, metadata= metadata)
+    writer = PillowWriter(fps=5, metadata= metadata)
     
     with writer.saving(fig, plot_name, 100):
         for k in range(len(Opera[2])+1):
@@ -361,3 +362,53 @@ def RW_2D_plot(Opera, plot_name):  #Plotting the gif of all the walkers justappo
             
     return
 
+
+
+
+def Prob_distr_lattice(N):
+    
+    points = []
+    radius = []
+    s = []  # Number of doable horizontal steps to reach the selected point. It has values a <= s <= (N-b) for each P(a,b)
+    for j in range(N+1):
+        for i in range(j, N+1):
+            if (i+j) % 2 == (N % 2) and (i+j) <= N:
+                points.append([i, j])
+                radius.append(math.sqrt(i**2 + j**2))
+                s.append([k for k in range(i, (N-j) + 1, 2)])
+    
+    
+    num_walks = [0] * len(points)
+    P_N = [0] * len(points)
+   
+    for i in range(len(points)):
+          
+        for k in (s[i]):
+            
+            f1 =  math.factorial(N) / ( math.factorial( int((points[i][0] + k)/2) ) * math.factorial( int((-points[i][0] + k)/2) ) * math.factorial(N-k) )
+            f2 =  math.factorial(N - k) / ( math.factorial( int((N - k + points[i][1])/2) ) * math.factorial( int((N - k - points[i][1])/2) ) )
+            num_walks[i] += int(f1 * f2)
+        
+        if sum(points[i]) == 0:
+            P_N[i] +=  num_walks[i] / 4**N
+            
+        elif points[i][0] == points[i][1] or points[i][1] == 0:
+            P_N[i] +=  (4 * num_walks[i]) / 4**N
+        else:
+            P_N[i] +=  (8 * num_walks[i]) / 4**N
+            
+    # Create a dictionary to store unique radii and corresponding counts
+    inside_dict = {}
+
+    # Iterate through the arrays and update the dictionary
+    for r, c in zip(radius, P_N):
+        if r in inside_dict:
+            inside_dict[r] += c
+        else:
+            inside_dict[r] = c
+
+    # Convert the dictionary back to arrays
+    unique_radius = np.asarray(list(inside_dict.keys()), dtype=np.float32)
+    unique_counts = np.asarray(list(inside_dict.values()), dtype=np.float32)
+                
+    return unique_radius, unique_counts

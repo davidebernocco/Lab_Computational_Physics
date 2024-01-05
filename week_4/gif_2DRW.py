@@ -11,28 +11,34 @@ from lattice_PN import Prob_distr_lattice
 from scipy.optimize import curve_fit
 
 
-# -----------------------------
+# -----------------------------------------------------------------------------
 # ---- A) On a square lattice
+# -----------------------------------------------------------------------------
 
+
+# Calling the function that gives all the quantities of the RW
 
 VonKarajan = RW2D_average(1000, 64, 0, 0, 0.25, 0.25, 0.25, False)
 
 
+
+# -------------
+# Animated gif
 """
 RW_2D_plot(VonKarajan, '2D_RW.gif')
 plt.close('all')
 """
 
 
+# -----------------------------------------------------------------------------
+#  Create two arrays with all the probabilities on the plane and the distances
+# they are associated to
+
 original_array = VonKarajan[3]  # Define an array
-
 unique_entries, indices = np.unique(original_array, return_inverse=True)  # Use NumPy's unique function to get unique entries and their indices
-
 separated_arrays = {}  # Create a dictionary to store separated arrays
-
 for entry in unique_entries:   # Iterate through unique entries and populate the dictionary
     separated_arrays[entry] = original_array[np.isclose(original_array, entry)]
-
 Bins = np.asarray([], dtype=np.float32)
 columns = np.asarray([], dtype=np.int32)
 for entry, array in separated_arrays.items():   # Print the separated arrays
@@ -40,7 +46,10 @@ for entry, array in separated_arrays.items():   # Print the separated arrays
     columns = np.append(columns, len(array))
 
 
+
+# --------------------------------------------------------------
 # Normalized distribution of position at the end of the walkers
+
 density = columns / (len(VonKarajan[3]))
 Clessidra = Prob_distr_lattice(64)
 
@@ -55,7 +64,9 @@ plt.show()
 
 
 
+# -------------------------------------
 #Histogram for the square lattice case
+
 positions = Bins
 column_heights = columns/10000
 
@@ -75,8 +86,9 @@ plt.show()
 
 
 
-
+# -----------------------------------
 # Plot - Mean square position over N
+
 t = np.array([i for i in range(1,65)])
 params, covariance = curve_fit(line,np.log(t),np.log(VonKarajan[2]))
 
@@ -92,18 +104,29 @@ plt.show()
 
 
 
-# -----------------------------
-# ---- B) With unit random steps (on the unitary circle theta belonging to [0, 2PI[ )
-
+# -----------------------------------------------------------------------------
+# ---- B) With unit random steps 
+# ----    (on the unitary circle, theta belonging to [0, 2PI[ )
+# -----------------------------------------------------------------------------
 """
+
+# Calling the function that gives all the quantities of the RW
+
 Mozart = RW2D_average(160, 64, 0, 0, 0, 0, 0, True)
 
+
+
+# -------------
+# Animated gif
 
 RW_2D_plot(Mozart, '2D_RW_continuous.gif')
 plt.close('all')
 
 
+
+# --------------------------------------------------------------------------
 # Normalized Histogram - distribution of position at the end of the walkers
+
 IQR = np.percentile(Mozart[3], 75) - np.percentile(Mozart[3], 25)
 nbins = int((max(Mozart[3]) - min(Mozart[3])) / (2 * IQR * len(Mozart[3])**(-1/3)))
 
@@ -123,7 +146,10 @@ plt.grid()
 plt.show()
 
 
+
+# -----------------------------------
 # Plot - Mean square position over N
+
 t = np.array([i for i in range(1,65)])
 params2, covariance2 = curve_fit(line, np.log(t),np.log(Mozart[2]))
 
@@ -138,7 +164,10 @@ plt.show()
 
 
 
-#Square lattice wirh relevant points
+
+# ------------------------------------------------------------------------------
+# ----- Square lattice with relevant points
+# ------------------------------------------------------------------------------
 """
 x_values = [0,2,4,6,8,1,3,5,7,2,4,6,3,5,4]
 y_values = [0,0,0,0,0,1,1,1,1,2,2,2,3,3,4]
@@ -160,44 +189,3 @@ plt.grid(True)
 plt.show()
 """
 
-
-
-# -------------------------------------------------------------------------------
-# ----- Easy example of gif animation with python:
-# -------------------------------------------------------------------------------
-
-"""
-fig = plt.figure()
-l, = plt.plot([], [], 'k-')
-l2, = plt.plot([], [], 'm--')
-plt.xlabel('x')
-plt.ylabel('f(x)')
-plt.title('Title')
-
-plt.xlim(-5, 5)
-plt.ylim(-5, 5)
-
-def func(x):
-    return np.sin(x)*3
-
-def func2(x):
-    return np.cos(x)*3
-
-metadata = dict(title='Movie', artist='codinglikened')
-writer = PillowWriter(fps=5, metadata= metadata)
-
-xlist = []
-ylist = []
-ylist2 = []
-
-with writer.saving(fig, 'SinCos_wave.gif', 100):
-    for xval in np.linspace(-5, 5, 100):
-        xlist.append(xval)
-        ylist.append(func(xval))
-        ylist2.append(func2(xval))
-        
-        l.set_data(xlist, ylist)
-        l2.set_data(xlist, ylist2)
-        
-        writer.grab_frame()
-"""

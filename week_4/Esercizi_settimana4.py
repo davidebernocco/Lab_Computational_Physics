@@ -10,12 +10,15 @@ import numpy as np
 from scipy.optimize import curve_fit
 import math
 from numba import jit
+
+
 #-- ES 1 --
 #---------- 1D Random Walks (RW)
 
 # 1.1) Properties
 """
 ocean = RW1D_average(100, 64, 0, 0.5)
+
 
 iter_plot(ocean, 0, 64, 100, 0.5, 'Istantaneous position $x_i$', False)
 
@@ -29,9 +32,8 @@ print( ocean[2][-1])
 print( ocean[3][-1])
 
 
+
 t = np.array([i for i in range(1,65)])
-
-
 
 paramsx, covariancex = curve_fit(line, t, ocean[2])
 
