@@ -7,14 +7,15 @@ Now I have to do everything from the beginning again
 import math 
 from numba import njit
 import numpy as np
-from Funz5 import int_trap, int_Simpson, int_sample_mean, int_importance_sampl, int_acc_rejec, average_of_averages, block_average
+from Funz5 import int_trap, int_Simpson, int_sample_mean, int_importance_sampl, int_acc_rejec, average_of_averages, block_average, f_quarterPi, line
 import matplotlib.pyplot as plt
 import time
+from scipy.optimize import curve_fit
 
 
 #-- ES 1 --
 #---------- Equispaced points: comparison between "trapezoidal" and "Simpson" method
-"""
+
 exact = math.e - 1
 
 n_intervals = np.asarray([2**j for j in range(1, 11)], dtype = np.int32)
@@ -23,19 +24,23 @@ trapezoidal = int_trap(n_intervals, exact)
 Simpson = int_Simpson(n_intervals, exact)
 
 
-plt.scatter(np.log(n_intervals), np.log(trapezoidal[1]), label='Trapezoidal method')
-plt.xlabel('log(n)')
-plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
-plt.legend()
-plt.grid(True)
+param_t, covariance_t = curve_fit(line, np.log(n_intervals), np.log(trapezoidal[1]))
 
-plt.scatter(np.log(n_intervals), np.log(Simpson[1]), label='Simpson method')
+plt.scatter(np.log(n_intervals), np.log(trapezoidal[1]), label='Trapezoidal method', marker='s', s=50)
+plt.plot(np.log(n_intervals), line(np.log(n_intervals), *param_t), color='black')
+
+
+param_s, covariance_s = curve_fit(line, np.log(n_intervals), np.log(Simpson[1]))
+
+plt.scatter(np.log(n_intervals), np.log(Simpson[1]), label='Simpson method', marker='o', s=50)
+plt.plot(np.log(n_intervals), line(np.log(n_intervals), *param_s), color='black')
+
 plt.xlabel('log(n)')
 plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
-plt.legend()
+plt.legend(loc='lower left')
 plt.grid(True)
 plt.show()
-"""
+
 
 
 
@@ -108,13 +113,8 @@ plt.show()
 #---------- Monte Carlo method: error analysis using 'average of the averages' and 'block average'
 # Here we will take as a referment the sample mean algorithm 
 
-
+"""
 # ---- 4.1) and 4.2) Sample mean: Actual error, sigma_n and sigma_n / radq(n)
-
-
-@njit
-def f_quarterPi(x):
-    return np.sqrt(1 - x**2)
 
 n_arr = np.asarray([10**2, 10**3, 10**4], dtype=np.int32)
                    
@@ -144,5 +144,5 @@ print("The error associated to each of the m=10 runs (of lenght 10000) is well e
 BlockAverage = block_average(10**4, 10, f_quarterPi)
 
 print("The error over the average of the s=10 sub-block averages (of equal lenght) built from a unique run of 10000 points is:", BlockAverage[1])
-
+"""
 

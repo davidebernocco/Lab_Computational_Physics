@@ -4,9 +4,10 @@ Library of self-made functions needed for the codes implemented for the exercise
 @author: david
 """
 
-from numba import njit
+from numba import njit, jit
 import numpy as np
 import math 
+
 
 
 
@@ -19,15 +20,16 @@ def int_trap(num, I):
     for j in range(len(num)):
         xi = np.linspace(0, 1, num[j] + 1)
         h = xi[1] - xi[0]
-        somma = 0
+        somma = ( (math.e ** xi[0]) + (math.e ** xi[-1]) ) * ( 1 / 2 )
         
-        for i in range(len(xi) - 1):
-            somma += (math.e ** xi[i]) * h
+        for i in range(1, len(xi) - 1):
+            somma += (math.e ** xi[i])
         
-        results[j] = somma
-        Delta[j] = abs(somma - I)
+        results[j] = h * somma
+        Delta[j] = abs(h * somma - I)
     
     return results, Delta
+
 
 
 
@@ -49,6 +51,7 @@ def int_Simpson(num, I): # N.B. Unlike the "trpazoidal method" here the number o
         Delta[j] = abs((h/3) * somma - I)
     
     return results, Delta
+
 
 
 
@@ -83,6 +86,7 @@ def int_sample_mean(num, func, condition, I):
 
 
 
+
 @njit
 def int_importance_sampl(num):
     
@@ -107,6 +111,23 @@ def int_importance_sampl(num):
         Actual_err[j] = Sigma_n[j]/math.sqrt(num[j])
         
     return results, Sigma_n, Actual_err
+
+
+
+
+@njit
+def f_quarterPi(x):
+    
+    return np.sqrt(1 - x**2)
+
+
+
+
+@jit
+def line(x, m, q):
+    
+    return m*x + q
+
 
 
 
@@ -136,6 +157,7 @@ def int_acc_rejec(num, N_rep):
 
 
 
+
 def average_of_averages(num, m, func):
     
     aver = np.zeros(m, dtype = np.float32)
@@ -156,6 +178,7 @@ def average_of_averages(num, m, func):
     Sigma_m = math.sqrt( np.mean(aver_2) - (np.mean(aver))**2 )        
         
     return aver, Sigma_m
+
 
 
 
