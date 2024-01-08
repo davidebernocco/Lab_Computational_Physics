@@ -7,7 +7,7 @@ Now I have to do everything from the beginning again
 import math 
 from numba import njit
 import numpy as np
-from Funz5 import int_trap, int_Simpson, int_sample_mean, int_importance_sampl, int_acc_rejec, average_of_averages, block_average, f_quarterPi, line
+from Funz5 import int_trap, int_Simpson, int_sample_mean, int_importance_sampl, int_acc_rejec, average_of_averages, block_average, f_quarterPi, line, funz_exp
 import matplotlib.pyplot as plt
 import time
 from scipy.optimize import curve_fit
@@ -15,7 +15,7 @@ from scipy.optimize import curve_fit
 
 #-- ES 1 --
 #---------- Equispaced points: comparison between "trapezoidal" and "Simpson" method
-
+"""
 exact = math.e - 1
 
 n_intervals = np.asarray([2**j for j in range(1, 11)], dtype = np.int32)
@@ -35,12 +35,12 @@ param_s, covariance_s = curve_fit(line, np.log(n_intervals), np.log(Simpson[1]))
 plt.scatter(np.log(n_intervals), np.log(Simpson[1]), label='Simpson method', marker='o', s=50)
 plt.plot(np.log(n_intervals), line(np.log(n_intervals), *param_s), color='black')
 
-plt.xlabel('log(n)')
+plt.xlabel('log(n)', fontsize=12)
 plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
 plt.legend(loc='lower left')
 plt.grid(True)
 plt.show()
-
+"""
 
 
 
@@ -53,7 +53,7 @@ n_intervals = np.asarray([2**j for j in range(6, 21)], dtype = np.int32)
 # Sample mean function call
 start_time1 = time.time()
 
-SampleMean = int_sample_mean(n_intervals, math.e ** (-x[i] ** 2), False, 0)
+SampleMean = int_sample_mean(n_intervals, funz_exp, False, 0)
 
 end_time1 = time.time()
 elapsed_time1 = end_time1 - start_time1
@@ -88,6 +88,7 @@ plt.legend()
 plt.grid(True)
 plt.show()
 """
+
 
 
 #-- ES 3 --
@@ -129,7 +130,7 @@ plt.ylabel(r'$ \log(error) $', fontsize=12)
 plt.legend()
 plt.grid(True)
 plt.show()
-
+"""
 
 # ---- 4.3) AVERAGE OF THE AVERAGES 
 
@@ -144,5 +145,5 @@ print("The error associated to each of the m=10 runs (of lenght 10000) is well e
 BlockAverage = block_average(10**4, 10, f_quarterPi)
 
 print("The error over the average of the s=10 sub-block averages (of equal lenght) built from a unique run of 10000 points is:", BlockAverage[1])
-"""
+
 

@@ -55,6 +55,15 @@ def int_Simpson(num, I): # N.B. Unlike the "trpazoidal method" here the number o
 
 
 
+
+@njit
+def funz_exp(x):
+    
+    return math.e ** (-x ** 2) 
+
+
+
+
 @njit
 def int_sample_mean(num, func, condition, I):
     
@@ -160,22 +169,20 @@ def int_acc_rejec(num, N_rep):
 
 def average_of_averages(num, m, func):
     
-    aver = np.zeros(m, dtype = np.float32)
-    aver_2 = np.zeros(m, dtype = np.float32)
+    aver = 0
+    aver_2 = 0
     
     for j in range(m):
         x = np.random.uniform(0, 1, num)
         somma = 0
-        somma_2 = 0
     
         for i in range(len(x)):
             somma += func(x[i])  
-            somma_2 += func(x[i])**2 
         
-        aver[j] = 4*( somma / num )
-        aver_2[j] = aver[j]**2
+        aver += 4 * ( somma / num )
+        aver_2 += ( 4 * ( somma / num ) ) ** 2
         
-    Sigma_m = math.sqrt( np.mean(aver_2) - (np.mean(aver))**2 )        
+    Sigma_m = math.sqrt( (aver_2 / m) - ( aver / m )**2 )        
         
     return aver, Sigma_m
 
