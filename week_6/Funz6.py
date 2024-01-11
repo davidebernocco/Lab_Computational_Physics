@@ -91,12 +91,11 @@ def clt_lorentz( a, b, N, n_rep):
     half_IQR =  np.zeros(n_rep, dtype = np.float32)
     
     for i in range(n_rep):
-        np.random.seed(i)
         x = np.random.uniform(a, b, N)
         r = np.tan( math.pi * (x - 1/2) )
         
-        aver[i] += np.mean(r)
-        half_IQR[i] +=  0.5 * np.percentile(r, 75) - np.percentile(r, 25)
+        aver[i] = np.mean(r)
+        half_IQR[i] =  0.5 * np.percentile(r, 75) - np.percentile(r, 25)
         
     medianaTot = np.median(aver)
     half_IQRTot =  0.5 * (np.percentile(aver, 75) - np.percentile(aver, 25))

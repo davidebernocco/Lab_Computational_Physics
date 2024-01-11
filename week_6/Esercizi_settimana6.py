@@ -131,7 +131,7 @@ plt.show()
 
 # ---- 2.5)  Central Limit Theorem from LORENTZ DISTRIBUTION
 
-Debussy = clt_lorentz( 0, 1, Num, num)
+Debussy = clt_lorentz( -1, 1, Num, num)
 
 # More generally, if X1, X2,.., Xn are independent and Cauchy distributed with 
 # location parameters x01, x02,..., x0n and scales gamma1, gamma2,..., gamman,
@@ -159,15 +159,19 @@ plt.ylabel('Probability density', fontsize=12)
 plt.grid(True)
 
 
-x = np.linspace(min(Debussy[0]), max(Debussy[0]), 1000)
+x = np.linspace(-40, 40, 10000)
 y = cauchy.pdf(x, loc = Debussy[2], scale = Debussy[3])
 plt.plot(x, y, label='Cauchy Lorentz', color='black')
+plt.xlim(-30, 30)
 plt.legend()
 
 plt.show()
 
 
-
+"""
+FOR THE SAVED IMAGE, IT IS THE DISTRIBUTION OF THE VARIABLE "SAMPLE MEAN",
+WITH X0 = 0.013 AND GAMMA = 0.978
+"""
 
 
 
