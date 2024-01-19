@@ -245,3 +245,33 @@ def accuracy(s, lst_n, fun):
         
     return Delta1, Delta2, Delta3, Delta4
 
+
+
+
+def corr(n, N_max, lst):
+    
+    corr_arr = np.zeros(N_max, dtype = np.float32)
+        
+    for j in range(1, N_max):
+        
+        xi = 0
+        x2i = 0
+        xi_xij = 0
+        
+        for i in range(n - j):
+            xi += lst[i]
+            x2i += lst[i] ** 2 
+            xi_xij += lst[i] * lst[i + j] 
+            
+        xi = xi / (n - j)
+        x2i = x2i / (n - j)
+        xi_xij = xi_xij / (n - j)
+        
+        corr_arr[j] = (xi_xij - xi ** 2) / (x2i - xi ** 2)
+        
+    return corr_arr
+
+
+
+
+

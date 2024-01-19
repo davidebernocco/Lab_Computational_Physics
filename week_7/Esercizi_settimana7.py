@@ -10,7 +10,8 @@ import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 import time
 from Funz7 import Metropolis, gauss_func, plot_histo, acc_ratio, n_dep
-from Funz7 import equil_time, accuracy, dir_sampl_ground_state, Metro_sampl_ground_state
+from Funz7 import equil_time, accuracy, dir_sampl_ground_state
+from Funz7 import Metro_sampl_ground_state, corr, boxmuller
 
 
 
@@ -115,6 +116,48 @@ plt.legend(loc='lower left')
 plt.grid(True)
 plt.show()
 """
+
+
+
+#-- ES 3 --
+#---------- CORRELATIONS 
+
+
+# ---- 3.1) Correlations for n fixed, varying delta
+"""
+delta_arr = [0.5, 1, 5, 10, 15] #0.5,1,5,8,10
+
+for i in range(len(delta_arr)):
+    dracula = Metropolis(0, delta_arr[i], 10000, 1)[0]
+    jekyll = corr(10000, 50, dracula)
+    
+    plt.scatter(np.arange(1,51), jekyll, label=f'C(j) for delta = {delta_arr[i]} ', marker='o', s=50)
+
+plt.xlabel('j', fontsize=12)
+plt.ylabel(r'$ C(j) $', fontsize=12)
+plt.legend(loc='upper right')
+plt.grid(True)
+plt.show()
+"""
+
+
+# ---- 3.2) Correlations comparison: Box-Muller vs Metropolis
+"""
+house = boxmuller(10000)
+garden = Metropolis(0, 5, 10000, 1)[0]
+
+castle = corr(10000, 50, house)
+park = corr(10000, 50, garden)
+
+plt.scatter(np.arange(1,51), castle, label='C(j) BoxMuller', marker='o', s=50)
+plt.scatter(np.arange(1,51), park, label='C(j) Metropolis delta/sigma = 5', marker='s', s=50)
+plt.xlabel('j', fontsize=12)
+plt.ylabel(r'$ C(j) $', fontsize=12)
+plt.legend(loc='upper right')
+plt.grid(True)
+plt.show()
+"""
+
 
 
 
