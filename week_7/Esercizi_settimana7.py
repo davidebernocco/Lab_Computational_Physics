@@ -10,7 +10,7 @@ import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 import time
 from Funz7 import Metropolis, gauss_func, plot_histo, acc_ratio, n_dep
-from Funz7 import equil_time
+from Funz7 import equil_time, accuracy, dir_sampl_ground_state, Metro_sampl_ground_state
 
 
 
@@ -79,6 +79,42 @@ print("Simulation completed with average n =",  equilibration)
 
 
 
+#-- ES 2 --
+#---------- Sampling physical quantities: direct sampling and METROPOLIS SAMPLING
+
+
+# ---- 2.1), 2.2) Direct sampling
+"""
+lista_n = np.asarray([2 ** i for i in range(7, 18)])
+acc = accuracy(1, lista_n, dir_sampl_ground_state)
+
+plt.scatter(np.log(lista_n), np.log(acc[0]), label='Var. accuracy', marker='s', s=50)
+plt.scatter(np.log(lista_n), np.log(acc[1]), label='Pot en. accuracy', marker='o', s=50)
+plt.scatter(np.log(lista_n), np.log(acc[2]), label='Kin en. accuracy', marker='^', s=50)
+plt.scatter(np.log(lista_n), np.log(acc[3]), label='Tot en. accuracy', marker='v', s=50)
+plt.xlabel('log(n)', fontsize=12)
+plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
+plt.legend(loc='lower left')
+plt.grid(True)
+plt.show()
+
+
+
+# ---- 2.3) Metropolis sampling
+   
+#lista_n = np.asarray([2 ** i for i in range(7, 18)])
+acc_Metro = accuracy(1, lista_n, Metro_sampl_ground_state)
+
+plt.scatter(np.log(lista_n), np.log(acc_Metro[0]), label='Var. accuracy', marker='s', s=50)
+plt.scatter(np.log(lista_n), np.log(acc_Metro[1]), label='Pot en. accuracy', marker='o', s=50)
+plt.scatter(np.log(lista_n), np.log(acc_Metro[2]), label='Kin en. accuracy', marker='^', s=50)
+plt.scatter(np.log(lista_n), np.log(acc_Metro[3]), label='Tot en. accuracy', marker='v', s=50)
+plt.xlabel('log(n)', fontsize=12)
+plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
+plt.legend(loc='lower left')
+plt.grid(True)
+plt.show()
+"""
 
 
 

@@ -8,6 +8,8 @@ import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
+from numba import njit
+import random
 
     
 
@@ -145,4 +147,101 @@ def equil_time(x0, n_arr, s, delta, N_aver):
 
 
 
+@njit
+def boxmuller(fagioli):
+    
+    sacchetto = np.zeros(fagioli, dtype = np.float32)
+    
+    for i in range(fagioli):
+        gaus_stored = False
+        g = 0.0
+        
+        if gaus_stored:
+            rnd = g
+            gaus_stored = False
+        else:
+            while True:
+                x = random.uniform(-1,1) #Alternatively: x = 2.0 * random.random() - 1.0
+                y = random.uniform(-1,1) #Alternatively: y = 2.0 * random.random() - 1.0
+                r2 = x**2 + y**2
+                if r2 > 0.0 and r2 < 1.0:
+                    break
+            r2 = math.sqrt(-2.0 * math.log(r2) / r2)
+            rnd = x * r2
+            g = y * r2
+            gaus_stored = True
+            
+        sacchetto[i] = rnd   
+        
+    return sacchetto
+
+
+
+@njit
+def dir_sampl_ground_state(n, s):
+    
+    chicco = boxmuller(n)
+    x = 0
+    x2 = 0
+    
+    for i in range(n):
+        a =  math.e ** ( - chicco[i] ** 2 / (2 * s ** 2))
+        x += a
+        x2 += a ** 2
+        
+    integr = x / n
+    integr2 = x2 / n
+    
+    delta = (max(chicco) - min(chicco))
+    
+    return integr* delta, integr2 * delta
+
+
+
+
+def Metro_sampl_ground_state(n, s):
+    
+    x0 = 0
+    d = 5*s
+    chicco = Metropolis(x0, d, n, s)[0]
+    x = 0
+    x2 = 0
+    
+    for i in range(n):
+        a =  math.e ** ( - chicco[i] ** 2 / (2 * s ** 2))
+        x += a
+        x2 += a ** 2
+        
+    integr = x / n
+    integr2 = x2 / n
+    
+    delta = (max(chicco) - min(chicco))
+    
+    return integr* delta, integr2 * delta
+
+
+
+def accuracy(s, lst_n, fun):
+    
+    E_pot_expected = s / 2
+    E_kin_expected = 1 / ( 8 * s ** 2)
+    E_tot_expected = E_pot_expected + E_kin_expected
+    
+    Delta1 = np.zeros(len(lst_n), dtype = np.float32)
+    Delta2 = np.zeros(len(lst_n), dtype = np.float32)
+    Delta3 = np.zeros(len(lst_n), dtype = np.float32)
+    Delta4 = np.zeros(len(lst_n), dtype = np.float32)
+    
+    for i in range(len(lst_n)):
+        cachi = fun(lst_n[i], s)
+        E_pot_num = cachi[1] / ( 2 * cachi[0] )
+        E_kin_num = ( 1 / (4 * s **2)) - cachi[1] / ( 8 * s ** 4 * cachi[0] )
+        E_tot_num = E_pot_num + E_kin_num
+        
+        Delta1[i] = abs(cachi[1] - s ** 2)
+        Delta2[i] = abs(E_pot_num - E_pot_expected)
+        Delta3[i] = abs(E_kin_num - E_kin_expected)
+        Delta4[i] = abs(E_tot_num - E_tot_expected)
+        
+    return Delta1, Delta2, Delta3, Delta4
 
