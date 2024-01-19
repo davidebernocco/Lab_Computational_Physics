@@ -48,14 +48,14 @@ def Metropolis( x0, delta, n, s):
 
 
 
-def plot_histo(n_arr, func, s):
+def plot_histo(n_arr, func, s, delta):
     
     coefficients = {}
     
     for i in range(len(n_arr)):
         
         x_lst = np.arange(n_arr[i])
-        y_lst = func( 0, 5*s, n_arr[i], s)[0]
+        y_lst = func( 0, delta, n_arr[i], s)[0]
 
         plt.plot(x_lst, y_lst )
         plt.xlabel('i step', fontsize=12)
@@ -98,5 +98,51 @@ def plot_histo(n_arr, func, s):
     return coefficients
         
         
+
+    
+def acc_ratio(x0, n, s, d_arr):
+    
+    acc = np.zeros(len(d_arr), dtype = np.float32)
+    
+    for i in range(len(d_arr)):
+        crauti = Metropolis(x0, d_arr[i], n, s)
+        acc[i] = crauti[1]
+    
+    return acc
         
+
+
+def n_dep(x0, n_arr, s, delta):
+    variance = np.zeros(len(n_arr), dtype = np.float32)
+    
+    for i in range(len(n_arr)):
+        wurstel = Metropolis(x0, delta, n_arr[i], s)
+        variance[i] = np.var(wurstel[0])
         
+    return np.abs(variance - s ** 2)
+
+
+
+def equil_time(x0, n_arr, s, delta, N_aver):
+    
+    aver = 0
+    
+    for j in range(N_aver):
+        h = 1
+        i = 0
+    
+        while h > 0.05:
+            wurstel = Metropolis(x0, delta, n_arr[i], s)
+            mustard = np.var(wurstel[0])
+            h = abs(mustard - s ** 2) / s ** 2
+            i += 1
+    
+        #print("Simulation completed with parameter n =",  n_arr[i], mustard)
+        aver += n_arr[i]
+        
+    return aver / N_aver
+
+
+
+
+
