@@ -247,7 +247,7 @@ def accuracy(s, lst_n, fun):
 
 
 
-
+@njit
 def corr(n, N_max, lst):
     
     corr_arr = np.zeros(N_max, dtype = np.float32)
@@ -272,7 +272,7 @@ def corr(n, N_max, lst):
     return corr_arr
 
 
-
+@njit
 def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
     
     acc = 0
@@ -311,7 +311,7 @@ def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
 
 
 
-
+@njit
 def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m): #See pag 59 of "Metropolis.pdf"
     
     sesamo = Metropolis_Boltzmann(v0, dvmax, n, kb, T, m)[0]
@@ -324,6 +324,56 @@ def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m): #See pag 59 of "Metropolis.pd
         
     integr1 = v_m / n
     integr2 = v2_m / n
+    
+    return  integr1 , integr2 
+
+
+
+@njit
+def Metropolis_Boltzmann_N( v0, dvmax, n, kb, T, m, N):
+    
+    acc = 0
+    velocity = np.asarray([[0] * (N) for _ in range(n + 1)], dtype = np.float32)
+    velocity[0, :] = v0
+    Energy = np.zeros((n + 1), dtype = np.float32)
+    Energy[0] = np.sum(velocity[0, :] ** 2)
+    
+    v_t = np.asarray([v0] * N, dtype = np.float32)
+    
+    for j in range(1, n):
+    
+        for i in range(N):
+            
+            v_star = np.random.uniform(v_t[i] - dvmax, v_t[i] + dvmax)
+            
+            esp1v = ( -m * v_star ** 2 / ( 2 * kb * T) )  
+            esp2v = ( -m * v_t[i] ** 2 / ( 2 * kb * T) )    
+            alphav = math.e ** (esp1v - esp2v)           
+            
+            if alphav >= np.random.rand() :
+                v_t[i] = v_star
+                acc += 1
+                
+            velocity[j, i] = v_t[i]
+            
+        Energy[j] = np.sum(velocity[j, :] ** 2)
+            
+    return velocity, (m / 2) * Energy, acc / (N * n)
+
+
+@njit
+def Metro_sampl_Boltzmann_N(v0, dvmax, n, kb, T, m, N): #See pag 59 of "Metropolis.pdf"
+    
+    sesamo = Metropolis_Boltzmann_N(v0, dvmax, n, kb, T, m, N)[0].flatten()
+    v_m = 0
+    v2_m = 0
+    
+    for i in range(n*N):
+        v_m += sesamo[i]
+        v2_m += sesamo[i] ** 2
+        
+    integr1 = v_m / (n * N)
+    integr2 = v2_m / (n * N)
     
     return  integr1 , integr2 
 

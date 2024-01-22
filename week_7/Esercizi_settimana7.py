@@ -13,6 +13,7 @@ from Funz7 import Metropolis, gauss_func, plot_histo, acc_ratio, n_dep
 from Funz7 import equil_time, accuracy, dir_sampl_ground_state
 from Funz7 import Metro_sampl_ground_state, corr, boxmuller
 from Funz7 import Metropolis_Boltzmann, Metro_sampl_Boltzmann
+from Funz7 import Metropolis_Boltzmann_N, Metro_sampl_Boltzmann_N
 
 
 
@@ -168,12 +169,12 @@ plt.show()
 
 # ---- 4.1) SINGLE CLASSICAL PARTICLE 1D IN THERMAL EQUILIBRIUM
 
-
+"""
 npoints = 100000
 MB_distr1D = Metropolis_Boltzmann(0, 2, npoints, 1, 1, 1)
 
 
-"""
+
 IQR = np.percentile(MB_distr1D[0], 75) - np.percentile(MB_distr1D[0], 25)
 nbins = int((max(MB_distr1D[0]) - min(MB_distr1D[0])) / (2 * IQR * len(MB_distr1D[0])**(-1/3)))
 
@@ -216,6 +217,19 @@ plt.grid(True)
 plt.legend()
 plt.show() 
 """
+
+
+
+# ---- 4.1) IDEAL 1D CLASSICAL GAS OF N PARTICLES IN THERMAL EQUILIBRIUM
+
+
+miao = Metro_sampl_Boltzmann_N(2, 13, 2000, 1, 75, 1, 120)
+print( "Mean velocity= ", miao[0])
+print( "Mean Energy", miao[1])
+print( "Expected values: 0, (kb * T) / m")
+print( "\n", "The acceptance ratio depends on T!!")
+
+
 
 
 
