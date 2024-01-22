@@ -167,7 +167,7 @@ plt.show()
 #---------- Verification of the BOLTZMAN DISTRIBUTION
 
 
-# ---- 4.1) SINGLE CLASSICAL PARTICLE 1D IN THERMAL EQUILIBRIUM
+# ---- 4.1), 4.3) SINGLE CLASSICAL PARTICLE 1D IN THERMAL EQUILIBRIUM
 
 """
 npoints = 100000
@@ -206,9 +206,21 @@ plt.ylabel('Probability density', fontsize=12)
 plt.grid(True)
 plt.legend()
 plt.show() 
+"""
 
 
+# Mean vel tends to zero beacause of symmetry (no preferential direction +/- x)
+# Mean energy changes in time until thermalization is reached
+"""
+cri_cri = Metro_sampl_Boltzmann(0, 2, npoints, 1, 1, 1)
+print( "Mean velocity= ", cri_cri[0]) 
+print( "Mean Energy", cri_cri[1] / 2)
+print( "Expected values: 0, (kb * T) / (2 * m)")
+"""
 
+# ---- 4.2) Check P(E) follows the expected behavoir
+
+"""
 plt.scatter(np.log(bin_centersE), np.log(densityE), color='g', label=r'$ ln( f(E)^{num}) $',  marker='o', s=50)
 plt.plot(np.log(bin_centersE), np.log(list(map(lambda x: (1/np.sqrt(math.pi*x))*math.e**(-x), bin_centersE))), color='red', label=r'$ ln( f(E)^{theo}) $' ) 
 plt.xlabel(r'$ln(E)$', fontsize=12)
@@ -220,24 +232,64 @@ plt.show()
 
 
 
-# ---- 4.1) IDEAL 1D CLASSICAL GAS OF N PARTICLES IN THERMAL EQUILIBRIUM
+# ---- 4.5) IDEAL 1D CLASSICAL GAS OF N PARTICLES IN THERMAL EQUILIBRIUM
 
 
-miao = Metro_sampl_Boltzmann_N(2, 13, 2000, 1, 75, 1, 120)
-print( "Mean velocity= ", miao[0])
-print( "Mean Energy", miao[1])
-print( "Expected values: 0, (kb * T) / m")
+n_step = 10000
+N_part = 1000
+"""
+miao = Metro_sampl_Boltzmann_N(2, 13, n_step, 1, 75, 1, N_part)
+print( "Mean particle velocity = ", miao[0])
+print( "Mean particle Energy", miao[1] / 2)
+print( "Expected values: 0, (kb * T) / (2 * m)")
 print( "\n", "The acceptance ratio depends on T!!")
+"""
 
 
+# ---- 4.6) P(<E>/N) (Should asymptotically tends to a gaussian centered in the <E> over all microstates)
+
+"""
+bau = Metropolis_Boltzmann_N(10, 13, n_step, 1, 10, 1, N_part)
+
+IQRE = np.percentile(bau[1]/N_part, 75) - np.percentile(bau[1]/N_part, 25)
+nbinsE = int((max(bau[1]/N_part) - min(bau[1]/N_part)) / (2 * IQRE * len(bau[1]/N_part)**(-1/3)))
+
+histE, binsE = np.histogram(bau[1]/N_part, nbinsE, density=False)
+bin_centersE = (binsE[:-1] + binsE[1:]) / 2
+bin_widthsE = np.diff(binsE)
+densityE = histE / (n_step * bin_widthsE[0])
+
+plt.bar(binsE[:-1], densityE, width=bin_widthsE, alpha=0.5, color='b', label=r'$ f(\epsilon)^{num} $')
+plt.xlabel(r'$ \epsilon = \langle E \rangle / N$', fontsize=12)
+plt.ylabel('Probability density', fontsize=12)
+plt.grid(True)
+plt.legend()
+plt.show() 
+"""
 
 
+# 4.7) ---- Heat capacity (should be constant!)
 
+"""
+mano1 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 10, 1, N_part)
+mano2 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 20, 1, N_part)
+mano3 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 30, 1, N_part)
+mano9 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 90, 1, N_part)
+mano10 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 100, 1, N_part)
+mano11 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 110, 1, N_part)
+print((np.mean(mano2[1]) - np.mean(mano1[1])) / 10)
+print((np.mean(mano3[1]) - np.mean(mano2[1])) / 10)
+print((np.mean(mano10[1]) - np.mean(mano9[1])) / 10)
+print((np.mean(mano11[1]) - np.mean(mano10[1])) / 10)
+"""
 
+# 4.8) Mean square energy fluctuations
 
+braccio1 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 10, 1, N_part)
+braccio2 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 100, 1, N_part)
 
-
-
-
+print("Mean square fluctuation for T = 10K: ", np.var(braccio1[1]/N_part))
+print("Mean square fluctuation for T = 100K: ", np.var(braccio2[1]/N_part))
+# To be compared with the two corresp. histos at 4.6) !!
 
 
