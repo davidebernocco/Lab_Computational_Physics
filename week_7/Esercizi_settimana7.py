@@ -161,4 +161,88 @@ plt.show()
 
 
 
+#-- ES 4 --
+#---------- Verification of the BOLTZMAN DISTRIBUTION
+
+
+# ---- 4.1) SINGLE CLASSICAL PARTICLE 1D IN THERMAL EQUILIBRIUM
+
+def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
+    
+    acc = 0
+    velocity = np.zeros(n, dtype = np.float32)
+    energy = np.zeros(n, dtype = np.float32)
+    velocity[0] = v0
+    energy[0] = (m / 2) * v0 ** 2
+    
+    E_t = (m / 2) * v0 ** 2
+    v_t = v0
+    
+    for i in range(1, n):
+        v_star = np.random.uniform(v_t - dvmax, v_t + dvmax)
+        E_star = (m / 2) * v_star ** 2
+        
+        esp1v = ( -m * v_star ** 2 / ( 2 * kb * T) )  
+        esp2v = ( -m * v_t ** 2 / ( 2 * kb * T) )    
+        alphav = math.e ** (esp1v - esp2v)           
+        
+        if alphav >= np.random.rand() :
+            v_t = v_star
+            acc += 1
+        
+        esp1E = ( - E_star / ( kb * T) )  
+        esp2E = ( - E_t / ( kb * T) )    
+        alphaE = math.e ** (esp1E - esp2E) 
+               
+        
+        if alphaE >= np.random.rand() :
+            E_t = E_star
+            
+        velocity[i] = v_t
+        energy[i] = E_t
+            
+    return velocity, energy, acc/n
+
+
+npoints = 100000
+MB_distr1D = Metropolis_Boltzmann(0.5, 2, npoints, 1, 1, 1)
+
+"""
+
+ math.sqrt(E_t / E_star) *
+ 
+IQR = np.percentile(MB_distr1D[0], 75) - np.percentile(MB_distr1D[0], 25)
+nbins = int((max(MB_distr1D[0]) - min(MB_distr1D[0])) / (2 * IQR * len(MB_distr1D[0])**(-1/3)))
+
+hist, bins = np.histogram(MB_distr1D[0], nbins, density=False)
+bin_centers = (bins[:-1] + bins[1:]) / 2
+bin_widths = np.diff(bins)
+density = hist / (npoints * bin_widths[0])
+
+plt.bar(bins[:-1], density, width=bin_widths, alpha=0.5, color='b', label=r'$ f(v)^{num} $')
+plt.xlabel(r'$v$', fontsize=12)
+plt.ylabel('Probability density', fontsize=12)
+plt.grid(True)
+plt.legend()
+plt.show() 
+"""
+
+
+IQRE = np.percentile(MB_distr1D[1], 75) - np.percentile(MB_distr1D[1], 25)
+nbinsE = int((max(MB_distr1D[1]) - min(MB_distr1D[1])) / (2 * IQRE * len(MB_distr1D[1])**(-1/3)))
+
+histE, binsE = np.histogram(MB_distr1D[1], nbinsE, density=False)
+bin_centersE = (binsE[:-1] + binsE[1:]) / 2
+bin_widthsE = np.diff(binsE)
+densityE = histE / (npoints * bin_widthsE[0])
+
+plt.bar(binsE[:-1], densityE, width=bin_widthsE, alpha=0.5, color='b', label=r'$ f(E)^{num} $')
+plt.xlabel(r'$E$', fontsize=12)
+plt.ylabel('Probability density', fontsize=12)
+plt.grid(True)
+plt.legend()
+plt.show() 
+
+
+
 
