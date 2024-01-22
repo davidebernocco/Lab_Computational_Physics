@@ -12,6 +12,7 @@ import time
 from Funz7 import Metropolis, gauss_func, plot_histo, acc_ratio, n_dep
 from Funz7 import equil_time, accuracy, dir_sampl_ground_state
 from Funz7 import Metro_sampl_ground_state, corr, boxmuller
+from Funz7 import Metropolis_Boltzmann, Metro_sampl_Boltzmann
 
 
 
@@ -83,9 +84,9 @@ print("Simulation completed with average n =",  equilibration)
 #-- ES 2 --
 #---------- Sampling physical quantities: direct sampling and METROPOLIS SAMPLING
 
-
-# ---- 2.1), 2.2) Direct sampling
 """
+# ---- 2.1), 2.2) Direct sampling
+
 lista_n = np.asarray([2 ** i for i in range(7, 18)])
 acc = accuracy(1, lista_n, dir_sampl_ground_state)
 
@@ -167,50 +168,12 @@ plt.show()
 
 # ---- 4.1) SINGLE CLASSICAL PARTICLE 1D IN THERMAL EQUILIBRIUM
 
-def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
-    
-    acc = 0
-    velocity = np.zeros(n, dtype = np.float32)
-    energy = np.zeros(n, dtype = np.float32)
-    velocity[0] = v0
-    energy[0] = (m / 2) * v0 ** 2
-    
-    E_t = (m / 2) * v0 ** 2
-    v_t = v0
-    
-    for i in range(1, n):
-        v_star = np.random.uniform(v_t - dvmax, v_t + dvmax)
-        E_star = (m / 2) * v_star ** 2
-        
-        esp1v = ( -m * v_star ** 2 / ( 2 * kb * T) )  
-        esp2v = ( -m * v_t ** 2 / ( 2 * kb * T) )    
-        alphav = math.e ** (esp1v - esp2v)           
-        
-        if alphav >= np.random.rand() :
-            v_t = v_star
-            acc += 1
-        
-        esp1E = ( - E_star / ( kb * T) )  
-        esp2E = ( - E_t / ( kb * T) )    
-        alphaE = math.e ** (esp1E - esp2E) 
-               
-        
-        if alphaE >= np.random.rand() :
-            E_t = E_star
-            
-        velocity[i] = v_t
-        energy[i] = E_t
-            
-    return velocity, energy, acc/n
-
 
 npoints = 100000
-MB_distr1D = Metropolis_Boltzmann(0.5, 2, npoints, 1, 1, 1)
+MB_distr1D = Metropolis_Boltzmann(0, 2, npoints, 1, 1, 1)
+
 
 """
-
- math.sqrt(E_t / E_star) *
- 
 IQR = np.percentile(MB_distr1D[0], 75) - np.percentile(MB_distr1D[0], 25)
 nbins = int((max(MB_distr1D[0]) - min(MB_distr1D[0])) / (2 * IQR * len(MB_distr1D[0])**(-1/3)))
 
@@ -225,7 +188,7 @@ plt.ylabel('Probability density', fontsize=12)
 plt.grid(True)
 plt.legend()
 plt.show() 
-"""
+
 
 
 IQRE = np.percentile(MB_distr1D[1], 75) - np.percentile(MB_distr1D[1], 25)
@@ -242,6 +205,24 @@ plt.ylabel('Probability density', fontsize=12)
 plt.grid(True)
 plt.legend()
 plt.show() 
+
+
+
+plt.scatter(np.log(bin_centersE), np.log(densityE), color='g', label=r'$ ln( f(E)^{num}) $',  marker='o', s=50)
+plt.plot(np.log(bin_centersE), np.log(list(map(lambda x: (1/np.sqrt(math.pi*x))*math.e**(-x), bin_centersE))), color='red', label=r'$ ln( f(E)^{theo}) $' ) 
+plt.xlabel(r'$ln(E)$', fontsize=12)
+plt.ylabel('ln( Probability density) ', fontsize=12)
+plt.grid(True)
+plt.legend()
+plt.show() 
+"""
+
+
+
+
+
+
+
 
 
 

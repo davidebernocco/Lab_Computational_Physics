@@ -181,16 +181,16 @@ def boxmuller(fagioli):
 def dir_sampl_ground_state(n, s):
     
     chicco = boxmuller(n)
-    x = 0
-    x2 = 0
+    norm = 0
+    x2_m = 0
     
     for i in range(n):
         a =  math.e ** ( - chicco[i] ** 2 / (2 * s ** 2))
-        x += a
-        x2 += a ** 2
+        norm += a
+        x2_m += (chicco[i] ** 2) * a
         
-    integr = x / n
-    integr2 = x2 / n
+    integr = norm / n
+    integr2 = x2_m / n
     
     delta = (max(chicco) - min(chicco))
     
@@ -204,16 +204,16 @@ def Metro_sampl_ground_state(n, s):
     x0 = 0
     d = 5*s
     chicco = Metropolis(x0, d, n, s)[0]
-    x = 0
-    x2 = 0
+    norm = 0
+    x2_m = 0
     
     for i in range(n):
         a =  math.e ** ( - chicco[i] ** 2 / (2 * s ** 2))
-        x += a
-        x2 += a ** 2
+        norm += a
+        x2_m += (chicco[i] ** 2) * a
         
-    integr = x / n
-    integr2 = x2 / n
+    integr = norm / n
+    integr2 = x2_m / n
     
     delta = (max(chicco) - min(chicco))
     
@@ -273,5 +273,58 @@ def corr(n, N_max, lst):
 
 
 
+def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
+    
+    acc = 0
+    velocity = np.zeros(n, dtype = np.float32)
+    energy = np.zeros(n, dtype = np.float32)
+    velocity[0] = v0
+    energy[0] = (m / 2) * v0 ** 2
+    
+    E_t = (m / 2) * v0 ** 2
+    v_t = v0
+    
+    for i in range(1, n):
+        v_star = np.random.uniform(v_t - dvmax, v_t + dvmax)
+        E_star = (m / 2) * v_star ** 2
+        
+        esp1v = ( -m * v_star ** 2 / ( 2 * kb * T) )  
+        esp2v = ( -m * v_t ** 2 / ( 2 * kb * T) )    
+        alphav = math.e ** (esp1v - esp2v)           
+        
+        if alphav >= np.random.rand() :
+            v_t = v_star
+            acc += 1
+        
+        esp1E = ( - E_star / ( kb * T) )  
+        esp2E = ( - E_t / ( kb * T) )    
+        alphaE = math.e ** (esp1E - esp2E) 
+               
+        
+        if alphaE >= np.random.rand() :
+            E_t = E_star
+            
+        velocity[i] = v_t
+        energy[i] = E_t
+            
+    return velocity, energy, acc/n
+
+
+
+
+def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m): #See pag 59 of "Metropolis.pdf"
+    
+    sesamo = Metropolis_Boltzmann(v0, dvmax, n, kb, T, m)[0]
+    v_m = 0
+    v2_m = 0
+    
+    for i in range(n):
+        v_m += sesamo[i]
+        v2_m += sesamo[i] ** 2
+        
+    integr1 = v_m / n
+    integr2 = v2_m / n
+    
+    return  integr1 , integr2 
 
 
