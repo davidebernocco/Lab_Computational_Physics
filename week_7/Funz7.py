@@ -188,17 +188,20 @@ def dir_sampl_ground_state(n, s):
     
     chicco = boxmuller(n)
     norm = 0
+    x_m = 0
     x2_m = 0
     
     for i in range(n):
         a =  math.e ** ( - chicco[i] ** 2 / (2 * s ** 2))
         norm += a
         x2_m += (chicco[i] ** 2) * a
+        x_m += chicco[i] * a
         
     integr = norm / n
+    integr1 = x_m / n
     integr2 = x2_m / n
     
-    return integr2 / integr
+    return integr2 / integr, integr1 / integr
 
 
 
@@ -208,14 +211,17 @@ def Metro_sampl_ground_state(n, s):
     x0 = 0
     d = 4*s
     chicco = Metropolis(x0, d, n, s)[0]
+    x_m = 0
     x2_m = 0
     
     for i in range(n):
         x2_m += (chicco[i] ** 2)
-        
+        x_m += chicco[i]
+     
+    integr1 = x_m / n
     integr2 = x2_m / n
     
-    return integr2
+    return integr2, integr1
 
 
 
@@ -232,11 +238,11 @@ def accuracy(s, lst_n, fun):
     
     for i in range(len(lst_n)):
         cachi = fun(lst_n[i], s)
-        E_pot_num = cachi /  2 
-        E_kin_num = ( 1 / (4 * s **2)) - cachi / ( 8 * s ** 4  )
+        E_pot_num = cachi[0] /  2 
+        E_kin_num = ( 1 / (4 * s **2)) - cachi[0] / ( 8 * s ** 4  )
         E_tot_num = E_pot_num + E_kin_num
         
-        Delta1[i] = abs(cachi - s ** 2)
+        Delta1[i] = abs((cachi[0] - cachi[1] ** 2) - s ** 2)
         Delta2[i] = abs(E_pot_num - E_pot_expected)
         Delta3[i] = abs(E_kin_num - E_kin_expected)
         Delta4[i] = abs(E_tot_num - E_tot_expected)
@@ -250,7 +256,7 @@ def corr(n, N_max, lst):
     
     corr_arr = np.zeros(N_max, dtype = np.float32)
         
-    for j in range(1, N_max):
+    for j in range(N_max):
         
         xi = 0
         x2i = 0

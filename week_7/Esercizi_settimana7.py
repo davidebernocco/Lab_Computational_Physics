@@ -136,7 +136,7 @@ for i in range(len(delta_arr)):
     dracula = Metropolis(0, delta_arr[i], 10000, 1)[0]
     jekyll = corr(10000, 50, dracula)
     
-    plt.scatter(np.arange(1,51), jekyll, label=f'C(j) for delta = {delta_arr[i]} ', marker='o', s=50)
+    plt.scatter(np.arange(50), jekyll, label=f'C(j) for delta = {delta_arr[i]} ', marker='o', s=50)
 
 plt.xlabel('j', fontsize=12)
 plt.ylabel(r'$ C(j) $', fontsize=12)
@@ -147,21 +147,21 @@ plt.show()
 
 
 # ---- 3.2) Correlations comparison: Box-Muller vs Metropolis
-"""
+
 house = boxmuller(10000)
 garden = Metropolis(0, 5, 10000, 1)[0]
 
 castle = corr(10000, 50, house)
 park = corr(10000, 50, garden)
 
-plt.scatter(np.arange(1,51), castle, label='C(j) BoxMuller', marker='o', s=50)
-plt.scatter(np.arange(1,51), park, label='C(j) Metropolis delta/sigma = 5', marker='s', s=50)
+plt.scatter(np.arange(50), castle, label='C(j) BoxMuller', marker='s', s=50, color='m')
+plt.scatter(np.arange(50), park, label='C(j) Metropolis delta/sigma = 5', marker='o', s=50, color='green')
 plt.xlabel('j', fontsize=12)
 plt.ylabel(r'$ C(j) $', fontsize=12)
 plt.legend(loc='upper right')
 plt.grid(True)
 plt.show()
-"""
+
 
 
 
