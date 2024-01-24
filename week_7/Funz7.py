@@ -58,14 +58,16 @@ def plot_histo(n_arr, func, s, delta):
         
         x_lst = np.arange(n_arr[i])
         y_lst = func( 0, delta, n_arr[i], s)[0]
+        
+        fig = f"fig_{2*i}"
+        ax = f"ax_{2*i}"
+        fig, ax = plt.subplots(figsize=(6.2, 4.5))
+        ax.plot(x_lst, y_lst )
+        ax.set_xlabel(r'$ i $', fontsize=17)
+        ax.set_ylabel(r'$ x_i $', fontsize=17)
+        ax.grid(True)
 
-        plt.plot(x_lst, y_lst )
-        plt.xlabel('i step', fontsize=12)
-        plt.ylabel(r'$ x_i $', fontsize=12)
-        plt.grid(True)
-        plt.show()
-
-         
+        # Histo 
         IQR = np.percentile(y_lst, 75) - np.percentile(y_lst, 25)
         nbins = int((max(y_lst) - min(y_lst)) / (2 * IQR * len(y_lst)**(-1/3)))
 
@@ -74,24 +76,28 @@ def plot_histo(n_arr, func, s, delta):
         bin_widths = np.diff(bins)
         density = hist / (n_arr[i] * bin_widths[0])
 
-        plt.bar(bins[:-1], density, width=bin_widths, alpha=0.5, color='b', label=r'$ PDF^{num} $')
-
-
-
+        
+        # fit
         params, covariance = curve_fit(gauss_func, bin_centers, density)
         Mu, Sigma = params
-        
         expected_values = gauss_func(bin_centers, Mu, Sigma)
         chi_square = np.sum((density - expected_values) ** 2 / expected_values)
-
+        
+        
         x_range = np.linspace(min(bin_centers), max(bin_centers), 1000)
-        plt.plot(x_range, gauss_func(x_range, Mu, Sigma), label='Gauss fit', color='black')
-
-        plt.xlabel('x', fontsize=12)
-        plt.ylabel('Probability density', fontsize=12)
-        plt.grid(True)
-        plt.legend()
-        plt.show() 
+        
+        fig_b = f"fig_{2*i+1}"
+        ax_b = f"ax_{2*i+1}"
+        fig_b, ax_b = plt.subplots(figsize=(6.2, 4.5))
+        ax_b.bar(bins[:-1], density, width=bin_widths, alpha=0.5, color='b', label=r'$ PDF^{num} $')
+        ax_b.plot(x_range, gauss_func(x_range, Mu, Sigma), label='Gauss fit', color='black')
+        ax_b.set_xlabel(' x ', fontsize=15)
+        ax_b.set_ylabel('Probability density', fontsize=15)
+        ax_b.legend()
+        ax_b.grid(True)
+        
+        plt.show()
+        
         
         coefficients[n_arr[i]] = (params, covariance, chi_square)
     
@@ -192,9 +198,7 @@ def dir_sampl_ground_state(n, s):
     integr = norm / n
     integr2 = x2_m / n
     
-    delta = (max(chicco) - min(chicco))
-    
-    return integr* delta, integr2 * delta
+    return integr2 / integr
 
 
 
@@ -202,28 +206,22 @@ def dir_sampl_ground_state(n, s):
 def Metro_sampl_ground_state(n, s):
     
     x0 = 0
-    d = 5*s
+    d = 4*s
     chicco = Metropolis(x0, d, n, s)[0]
-    norm = 0
     x2_m = 0
     
     for i in range(n):
-        a =  math.e ** ( - chicco[i] ** 2 / (2 * s ** 2))
-        norm += a
-        x2_m += (chicco[i] ** 2) * a
+        x2_m += (chicco[i] ** 2)
         
-    integr = norm / n
     integr2 = x2_m / n
     
-    delta = (max(chicco) - min(chicco))
-    
-    return integr* delta, integr2 * delta
+    return integr2
 
 
 
 def accuracy(s, lst_n, fun):
     
-    E_pot_expected = s / 2
+    E_pot_expected = s**2 / 2
     E_kin_expected = 1 / ( 8 * s ** 2)
     E_tot_expected = E_pot_expected + E_kin_expected
     
@@ -234,11 +232,11 @@ def accuracy(s, lst_n, fun):
     
     for i in range(len(lst_n)):
         cachi = fun(lst_n[i], s)
-        E_pot_num = cachi[1] / ( 2 * cachi[0] )
-        E_kin_num = ( 1 / (4 * s **2)) - cachi[1] / ( 8 * s ** 4 * cachi[0] )
+        E_pot_num = cachi /  2 
+        E_kin_num = ( 1 / (4 * s **2)) - cachi / ( 8 * s ** 4  )
         E_tot_num = E_pot_num + E_kin_num
         
-        Delta1[i] = abs(cachi[1] - s ** 2)
+        Delta1[i] = abs(cachi - s ** 2)
         Delta2[i] = abs(E_pot_num - E_pot_expected)
         Delta3[i] = abs(E_kin_num - E_kin_expected)
         Delta4[i] = abs(E_tot_num - E_tot_expected)

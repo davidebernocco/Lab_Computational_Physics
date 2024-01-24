@@ -44,7 +44,7 @@ sigma = 1
 
 delta_arr = np.asarray([0.5*sigma + i for i in range(10)])
 delta_over_sigma = delta_arr/sigma
-acceptance = acc_ratio(0, 5000, 1, delta_arr)
+acceptance = acc_ratio(0, 10000, 1, delta_arr)
 
 ursula = np.linspace(min(delta_over_sigma), max(delta_over_sigma), 10)
 plt.plot(ursula, [1/2 for _ in range(10)], label='Ideal range limit', color='red')
@@ -63,10 +63,11 @@ plt.show()
 num_arr = np.asarray([100*i for i in range(1, 301)])
 num_dependence = n_dep(0, num_arr, 1, 5)
 
-
+jasmine = np.linspace(min(num_arr), max(num_arr), 10)
+plt.plot(jasmine, [0.05 for _ in range(10)], label='Equilibration limit', color='red', linewidth=2)
 plt.scatter(num_arr, num_dependence, marker='o', s=50)
-plt.xlabel('n', fontsize=12)
-plt.ylabel(r'$ | \sigma_{num}^2 - \sigma_{exp}^2 | $', fontsize=12)
+plt.xlabel('n', fontsize=15)
+plt.ylabel(r'$ | \sigma_{num}^2 - \sigma_{exp}^2 | $', fontsize=15)
 plt.grid(True)
 plt.show()
 """
@@ -82,36 +83,38 @@ print("Simulation completed with average n =",  equilibration)
 
 
 
+
+
 #-- ES 2 --
 #---------- Sampling physical quantities: direct sampling and METROPOLIS SAMPLING
 
-"""
-# ---- 2.1), 2.2) Direct sampling
 
-lista_n = np.asarray([2 ** i for i in range(7, 18)])
+# ---- 2.1), 2.2) Direct sampling
+"""
+lista_n = np.asarray([2 ** i for i in range(7, 20)])
 acc = accuracy(1, lista_n, dir_sampl_ground_state)
 
-plt.scatter(np.log(lista_n), np.log(acc[0]), label='Var. accuracy', marker='s', s=50)
-plt.scatter(np.log(lista_n), np.log(acc[1]), label='Pot en. accuracy', marker='o', s=50)
-plt.scatter(np.log(lista_n), np.log(acc[2]), label='Kin en. accuracy', marker='^', s=50)
-plt.scatter(np.log(lista_n), np.log(acc[3]), label='Tot en. accuracy', marker='v', s=50)
+plt.scatter(np.log(lista_n), np.log(acc[0]), label=r'$ \Delta_n( \langle \sigma^2 \rangle) $', marker='s', s=50)
+plt.scatter(np.log(lista_n), np.log(acc[1]), label=r'$ \Delta_n( \langle E_{Pot} \rangle) $', marker='o', s=50)
+plt.scatter(np.log(lista_n), np.log(acc[2]), label=r'$ \Delta_n( \langle E_{Kin} \rangle) $', marker='^', s=50)
+plt.scatter(np.log(lista_n), np.log(acc[3]), label=r'$ \Delta_n( \langle E_{Tot} \rangle) $', marker='v', s=50)
 plt.xlabel('log(n)', fontsize=12)
 plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
-plt.legend(loc='lower left')
+plt.legend(loc='lower right')
 plt.grid(True)
 plt.show()
-
+"""
 
 
 # ---- 2.3) Metropolis sampling
-   
-#lista_n = np.asarray([2 ** i for i in range(7, 18)])
+"""
+lista_n = np.asarray([2 ** i for i in range(7, 20)])
 acc_Metro = accuracy(1, lista_n, Metro_sampl_ground_state)
 
-plt.scatter(np.log(lista_n), np.log(acc_Metro[0]), label='Var. accuracy', marker='s', s=50)
-plt.scatter(np.log(lista_n), np.log(acc_Metro[1]), label='Pot en. accuracy', marker='o', s=50)
-plt.scatter(np.log(lista_n), np.log(acc_Metro[2]), label='Kin en. accuracy', marker='^', s=50)
-plt.scatter(np.log(lista_n), np.log(acc_Metro[3]), label='Tot en. accuracy', marker='v', s=50)
+plt.scatter(np.log(lista_n), np.log(acc_Metro[0]), label=r'$ \Delta_n( \langle \sigma^2 \rangle) $', marker='s', s=50)
+plt.scatter(np.log(lista_n), np.log(acc_Metro[1]), label=r'$ \Delta_n( \langle E_{Pot} \rangle) $', marker='o', s=50)
+plt.scatter(np.log(lista_n), np.log(acc_Metro[2]), label=r'$ \Delta_n( \langle E_{Kin} \rangle) $', marker='^', s=50)
+plt.scatter(np.log(lista_n), np.log(acc_Metro[3]), label=r'$ \Delta_n( \langle E_{Tot} \rangle) $', marker='v', s=50)
 plt.xlabel('log(n)', fontsize=12)
 plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
 plt.legend(loc='lower left')
@@ -285,11 +288,14 @@ print((np.mean(mano11[1]) - np.mean(mano10[1])) / 10)
 
 # 4.8) Mean square energy fluctuations
 
+"""
 braccio1 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 10, 1, N_part)
 braccio2 = Metropolis_Boltzmann_N(10, 13, n_step, 1, 100, 1, N_part)
 
 print("Mean square fluctuation for T = 10K: ", np.var(braccio1[1]/N_part))
 print("Mean square fluctuation for T = 100K: ", np.var(braccio2[1]/N_part))
 # To be compared with the two corresp. histos at 4.6) !!
+"""
+
 
 
