@@ -315,21 +315,39 @@ def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
 
 
 
-@njit
-def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m): #See pag 59 of "Metropolis.pdf"
+
+def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m, s): #See pag 59 of "Metropolis.pdf"
     
     sesamo = Metropolis_Boltzmann(v0, dvmax, n, kb, T, m)[0]
-    v_m = 0
-    v2_m = 0
+    v_m = np.zeros(n, dtype = np.float32)
+    v2_m = np.zeros(n, dtype = np.float32)
     
     for i in range(n):
-        v_m += sesamo[i]
-        v2_m += sesamo[i] ** 2
+        v_m[i] = sesamo[i]
+        v2_m[i] = sesamo[i] ** 2
         
-    integr1 = v_m / n
-    integr2 = v2_m / n
+    integr1 = np.sum(v_m) / n
+    integr2 = np.sum(v2_m) / n
     
-    return  integr1 , integr2 
+    err1 = block_average(v_m, s)
+    err2 = block_average(v2_m, s)
+    
+    return  integr1 , integr2, err1, err2 
+
+
+
+@njit
+def block_average(lst, s):
+    
+    aver = np.zeros(s, dtype = np.float32)
+    block_size = int(len(lst) / s)
+
+    for k in range(s):
+        aver[k] = np.std(lst[(k * block_size):((k + 1) * block_size)])
+        
+    Sigma_s = np.std(aver)
+        
+    return Sigma_s / math.sqrt(s)
 
 
 
@@ -365,20 +383,23 @@ def Metropolis_Boltzmann_N( v0, dvmax, n, kb, T, m, N):
     return velocity, (m / 2) * Energy, acc / (N * n)
 
 
-@njit
-def Metro_sampl_Boltzmann_N(v0, dvmax, n, kb, T, m, N): #See pag 59 of "Metropolis.pdf"
+
+def Metro_sampl_Boltzmann_N(v0, dvmax, n, kb, T, m, N, s): #See pag 59 of "Metropolis.pdf"
     
     sesamo = Metropolis_Boltzmann_N(v0, dvmax, n, kb, T, m, N)[0].flatten()
-    v_m = 0
-    v2_m = 0
+    v_m = np.zeros((n*N), dtype = np.float32)
+    v2_m = np.zeros((n*N), dtype = np.float32)
     
-    for i in range(n*N):
-        v_m += sesamo[i]
-        v2_m += sesamo[i] ** 2
+    for i in range(N*n):
+        v_m[i] = sesamo[i]
+        v2_m[i] = sesamo[i] ** 2
         
-    integr1 = v_m / (n * N)
-    integr2 = v2_m / (n * N)
+    integr1 = np.sum(v_m) / (n * N)
+    integr2 = np.sum(v2_m) / (n * N)
     
-    return  integr1 , integr2 
+    err1 = block_average(v_m, s)
+    err2 = block_average(v2_m, s)
+    
+    return  integr1 , integr2, err1, err2
 
-
+    
