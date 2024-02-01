@@ -120,35 +120,25 @@ def acc_ratio(x0, n, s, d_arr):
         
 
 
-def n_dep(x0, n_arr, s, delta):
-    variance = np.zeros(len(n_arr), dtype = np.float32)
+
+def equil(x0, delta, n, s, N, N_aver):
     
-    for i in range(len(n_arr)):
-        wurstel = Metropolis(x0, delta, n_arr[i], s)
-        variance[i] = np.var(wurstel[0])
+    l = int(n/N)
+    Var = np.zeros(l, dtype = np.float32)
+    h = np.zeros(l, dtype = np.float32)
+    aver =  np.zeros(l, dtype = np.float32)
+    
+    for i in range(N_aver):
         
-    return np.abs(variance - s ** 2)
-
-
-
-def equil_time(x0, n_arr, s, delta, N_aver):
-    
-    aver = 0
-    
-    for j in range(N_aver):
-        h = 1
-        i = 0
-    
-        while h > 0.05:
-            wurstel = Metropolis(x0, delta, n_arr[i], s)
-            mustard = np.var(wurstel[0])
-            h = abs(mustard - s ** 2) / s ** 2
-            i += 1
-    
-        #print("Simulation completed with parameter n =",  n_arr[i], mustard)
-        aver += n_arr[i]
+        x = Metropolis(x0, delta, n, s)[0]
+        
+        for j in range(l):
+            Var[j] = np.var(x[ : N*(j+1)])
+            h[j] = abs(Var[j] - s ** 2) / s ** 2
+            aver[j] += h[j]
         
     return aver / N_aver
+
 
 
 

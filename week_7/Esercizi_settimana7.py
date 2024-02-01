@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 import time
-from Funz7 import Metropolis, gauss_func, plot_histo, acc_ratio, n_dep
-from Funz7 import equil_time, accuracy, dir_sampl_ground_state
+from Funz7 import Metropolis, gauss_func, plot_histo, acc_ratio
+from Funz7 import equil, accuracy, dir_sampl_ground_state
 from Funz7 import Metro_sampl_ground_state, corr, boxmuller
 from Funz7 import Metropolis_Boltzmann, Metro_sampl_Boltzmann
 from Funz7 import Metropolis_Boltzmann_N, Metro_sampl_Boltzmann_N
@@ -58,28 +58,23 @@ plt.show()
 """
 
 
-#  ---- 1.3) |Numerical variance - exact variance| vs n
-"""
-num_arr = np.asarray([100*i for i in range(1, 301)])
-num_dependence = n_dep(0, num_arr, 1, 5)
 
-jasmine = np.linspace(min(num_arr), max(num_arr), 10)
-plt.plot(jasmine, [0.05 for _ in range(10)], label='Equilibration limit', color='red', linewidth=2)
-plt.scatter(num_arr, num_dependence, marker='o', s=50)
-plt.xlabel('n', fontsize=15)
-plt.ylabel(r'$ | \sigma_{num}^2 - \sigma_{exp}^2 | $', fontsize=15)
-plt.grid(True)
+#  ---- 1.3) |Numerical variance - exact variance| vs n: Equilibration time
+"""
+num_arr = np.arange(100, 10100, 100)
+num_dependence = equil(0, 5, 10000, 1, 100, 100)
+
+jasmine = np.linspace(min(num_arr), max(num_arr), 2)
+
+fig_eq, ax_eq = plt.subplots(figsize=(6.2, 4.5))
+ax_eq.plot(jasmine, [0.05 for _ in range(2)], label='Equilibration limit', color='red', linewidth=2)
+ax_eq.scatter(num_arr, num_dependence, marker='o', s=50)
+ax_eq.set_xlabel('n', fontsize=15)
+ax_eq.set_ylabel(r'$ | \sigma_{num}^2 - \sigma_{exp}^2 | / \sigma_{exp}^2 $', fontsize=15)
+ax_eq.grid(True)
 plt.show()
 """
 
-
-
-# ---- 1.4) Equilibration time for fixed delta
-"""
-num_arr = np.asarray([100*i for i in range(1, 301)])
-equilibration = equil_time(0, num_arr, 1, 5, 1000)
-print("Simulation completed with average n =",  equilibration)
-"""
 
 
 
@@ -239,17 +234,17 @@ plt.show()
 
 """
 n_step = 100000
-N_part = 200
+N_part = 5
 
 # Mean vel tends to zero beacause of symmetry (no preferential direction +/- x)
 # Mean energy changes in time due to typical canonical E fluctuation. However stay always around <E>
+
 miao = Metro_sampl_Boltzmann_N(10, 30, n_step, 1, 100, 1, N_part, int((N_part * n_step)/20000))
 print( "Mean particle velocity = ", miao[0], "+/-", miao[2])
 print( "Mean particle Energy", miao[1]/2, "+/-", miao[3]/2)
 print( "Expected values: 0, (kb * T) / 2")
 print( "\n", "The acceptance ratio depends on T and delta!!")
 """
-
 
 # ---- 4.6) P(<E>/N) (Should asymptotically tends to a gaussian centered in the <E> over all microstates)
 """
@@ -270,7 +265,7 @@ densityE = histE / (n_step * N_part * bin_widthsE[0])
 
 fig_EN, ax_EN =  plt.subplots(figsize=(6.2, 4.5))
 ax_EN.bar(binsE[:-1], densityE, width=bin_widthsE, alpha=0.5, color='b', label=r'$ P(\epsilon): N=1000, T=100 K $')
-ax_EN.set_xlabel(r'$ \epsilon = \langle E_i \rangle / N$', fontsize=15)
+ax_EN.set_xlabel(r'$ \epsilon =  E / N $', fontsize=15)
 ax_EN.set_ylabel('Probability density', fontsize=15)
 ax_EN.grid(True)
 ax_EN.legend()
