@@ -68,7 +68,7 @@ def VMC_text():
 
 
 
-
+"""
 @njit
 def block_average(lst, s):
     
@@ -87,7 +87,7 @@ def block_average(lst, s):
 par_VMC = np.arange(0.1, 1.55, 0.05)
 
 
-def VMC( reweight_d, delta, n_MC, s_blocks ):
+def VMC( reweight_d, n_MC, s_blocks ):
     
     # |wave function|**2
     def trial_f(x, b):
@@ -129,6 +129,7 @@ def VMC( reweight_d, delta, n_MC, s_blocks ):
         
         
         # Condition: use or not reweighting? Creterion end pag 18 unit 8
+        delta = 5 / (2 * math.sqrt(par_VMC[i]))   #optimal delta = 5*sigma
         pinco = Metropolis(0, 5, 50000, last_par)
         num = trial_f(pinco[0], last_par)
         den = trial_f(pinco[0], par_VMC[i])
@@ -215,7 +216,7 @@ def VMC( reweight_d, delta, n_MC, s_blocks ):
 #Plotting the results
 start_time1 = time.time()
 
-Kazan = VMC(0.1, 5, 100000, 100)  
+Kazan = VMC(0.1, 100000, 100)  
 beta = par_VMC
 
 fig_El, ax_El = plt.subplots(figsize=(6.2, 4.5))
@@ -240,8 +241,8 @@ elapsed_time1 = end_time1 - start_time1
 print(f"CPU time 'Local energy sampling': {elapsed_time1:.4f} seconds")
 
 #16 punti, n=10^5, s=10^2 -> t= 27sec
-#31 punti, n=10^5, s=10^2 -> t= 27sec
-
+#31 punti, n=10^5, s=10^2 -> t= 53sec
+"""
 
 
 
@@ -255,16 +256,27 @@ for j in range(len(x)):
     
 ---> BURNIN GIà CALCOLATO, CHE CI VUOLE TEMPO!!! 
 
-y = np.asarray([1900, 2600, 3300, 3200, 3500, 4500, 4300, 5100, 5400, 6700, 5800, 6300,
+y_gauss = np.asarray([1900, 2600, 3300, 3200, 3500, 4500, 4300, 5100, 5400, 6700, 5800, 6300,
  6800, 6600, 6900]) # Fit Pow: A=5719, a=0.52
+
+y_parab = np.asarray([2600, 2000, 2100, 1500, 1700, 1500, 1300, 1200, 1200, 1100,  900, 1000,
+  900, 1000,  900,  800]) # Fit pow: A=2445, a= -1.25
 """
-"""
-def trial_f(x, b):
-    return np.exp( -2 * b* x ** 2  )
 
 
 
-def Metropolis( x0, delta, n, b):
+
+
+
+def trial_f(x, a):
+    if abs(x) < a:
+        y = (a**2 - x**2) ** 2
+    else:
+        y = 0
+    return y
+
+
+def Metropolis( x0, delta, n, a):
 
     acc = 0
     points = np.zeros(n, dtype = np.float32)
@@ -274,8 +286,8 @@ def Metropolis( x0, delta, n, b):
     
     for i in range(1, n):
         
-        x_star = np.random.uniform(x_t - delta, x_t + delta)        
-        alpha = min(1, trial_f(x_star, b) / trial_f(x_t, b))
+        x_star =np.random.uniform(x_t - delta, x_t + delta)        
+        alpha = min(1, trial_f(x_star, a) / trial_f(x_t, a))
         
         if alpha >= np.random.rand() :
             x_t = x_star
@@ -287,9 +299,11 @@ def Metropolis( x0, delta, n, b):
 
 
 
-def equil(x0, delta, n, b, N, N_aver):
+
+
+def equil(x0, delta, n, a, N, N_aver):
     
-    theo_var = 1 / (4 * b)   #It depends on the choice of trial_f!!!
+    theo_var = a**2 / 7   #It depends on the choice of trial_f!!!
 
     l = int(n/N)
     Var = np.zeros(l, dtype = np.float32)
@@ -299,7 +313,7 @@ def equil(x0, delta, n, b, N, N_aver):
     
     for i in range(N_aver):
         
-        x = Metropolis(x0, delta, n, b)[0]
+        x = Metropolis(x0, delta, n, a)[0]
         
         for j in range(l):
             Var[j] = np.var(x[ : N*(j+1)])
@@ -307,18 +321,32 @@ def equil(x0, delta, n, b, N, N_aver):
             aver[j] += h[j]
     
     D_arr = aver / N_aver
+    
     ki = 0
     while D_arr[ki] > 0.05:
         ki += 1
-        
+       
     return (ki-1) * N
 
+"""
+mali = np.arange(100, 100100, 100)
+canarie = equil(0, 2.5, 100000, 1, 100, 100)
+jasmine = np.linspace(min(mali), max(mali), 2)
+fig_eq, ax_eq = plt.subplots(figsize=(6.2, 4.5))
+ax_eq.plot(jasmine, [0.05 for _ in range(2)], label='Equilibration limit', color='red', linewidth=2)
+ax_eq.scatter(mali, canarie, marker='o', s=50)
+ax_eq.set_xlabel('n', fontsize=15)
+ax_eq.set_ylabel(r'$ | \sigma_{num}^2 - \sigma_{exp}^2 | / \sigma_{exp}^2 $', fontsize=15)
+ax_eq.grid(True)
+plt.show()
+"""
 
-x = np.arange(0.1, 1.55, 0.1)
+
+x = np.arange(1, 2.6, 0.1)
 
 burn_in =  np.zeros(len(x), dtype = np.float32)
 for j in range(len(x)):
-    burn_in[j] = equil(0, 5, 10000, x[j], 100, 300)
+    burn_in[j] = equil(0, 2.5, 10000, x[j], 100, 300)
 
 
 from scipy.optimize import curve_fit
@@ -333,14 +361,46 @@ fig_bi, ax_bi = plt.subplots(figsize=(6.2, 4.5))
 ax_bi.scatter(x, burn_in, label='Numerical estimation', marker='o', s=50)
 ax_bi.plot(x, fit_burnin(x, *param_b), color='red', label='Power fit')
 
-ax_bi.set_xlabel(r'$ \beta $', fontsize=12)
-ax_bi.set_ylabel('Burn-in length', fontsize=12)
+ax_bi.set_xlabel(r'$ a $', fontsize=15)
+ax_bi.set_ylabel('Burn-in length', fontsize=15)
 ax_bi.legend()
 ax_bi.grid(True)
 plt.show()
+
+
+
+
+
+
 """
+# STUDY ON THE ACCEPTANCE RATIO FOR psi = PARABOLA 
+#DEPENDENCE ON BOTH DELTA AND A. GRAPHICALLY WE SEE:
+#FOR a in [1, 2.5], WITH delta = 2.5 WE STAY BETWEEN 0.25 AND 0.56 OF ACC. RAT.
+
+# Generate data
+d_arr = np.linspace(0.5, 5, 20)
+a_arr = np.linspace(0.5, 3, 20)
+X, Y = np.meshgrid(d_arr, a_arr)
+Z = np.zeros((len(d_arr), len(a_arr)), dtype=np.float32)
+for i in range(len(d_arr)):
+    for j in range(len(a_arr)):
+        Z[i,j] = Metropolis(0, d_arr[j], 10000, a_arr[i])[1]
 
 
+# Plot
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.7)
+ax.set_xlabel(r'$ \delta $',fontsize=15)
+ax.set_ylabel('a',fontsize=15)
+ax.set_zlabel('Acceptance ratio',fontsize=15)
 
+#Acceptance ratio ideal limit between 1/3 and 1/2
+Z_plane_1_3 = np.ones_like(X) * (1/3)
+Z_plane_1_2 = np.ones_like(X) * (1/2)
+ax.plot_surface(X, Y, Z_plane_1_3, alpha=0.8, color='red')
+ax.plot_surface(X, Y, Z_plane_1_2, alpha=0.8, color='red')
 
+plt.show()
 
+"""
