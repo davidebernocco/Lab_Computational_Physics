@@ -28,6 +28,7 @@ import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 from numba import njit
 import time
+from scipy.optimize import curve_fit
 
 
 """
@@ -87,11 +88,11 @@ def block_average(lst, s):
     return Sigma_s / math.sqrt(s)
 
 
-"""
-par_VMC = np.arange(1, 2.6, 0.1)
+
+par_VMC = np.arange(1.5, 2.6, 0.02)
 
 
-def VMC( reweight_d, n_MC, s_blocks ):
+def VMC( n_MC, s_blocks ):
     
     # |wave function|**2
     def trial_f(x, a):
@@ -123,7 +124,7 @@ def VMC( reweight_d, n_MC, s_blocks ):
         return points
         
     
-    last_par = par_VMC[0] - reweight_d - 0.01
+    last_par = 0.5*par_VMC[0]
     E_loc = np.zeros((len(par_VMC), n_MC), dtype = np.float32)
     E_loc_2 = np.zeros((len(par_VMC), n_MC), dtype = np.float32)
     err1 = np.zeros(len(par_VMC), dtype = np.float32)
@@ -222,33 +223,56 @@ def VMC( reweight_d, n_MC, s_blocks ):
 #Plotting the results
 start_time1 = time.time()
 
-Kazan = VMC(0.1, 100000, 100)  
-beta = par_VMC
+def fitE_parab(x, a, b):
+    return a/x**2 + b*x**2
 
+def fitVar_parab(x, a, b, c):
+    return a/x**4 + b*x**4 + c
+
+
+Kazan = VMC( 100000, 100)  
+beta = par_VMC
+xfit = np.linspace(min(beta), max(beta), 100)
+
+
+#fitting E curve
+parE_parab, covE_parab = curve_fit(fitE_parab, beta, Kazan[0], sigma=Kazan[1])
+a_Eparab, b_Eparab = parE_parab
+
+#plotting E
 fig_El, ax_El = plt.subplots(figsize=(6.2, 4.5))
-ax_El.scatter(beta, Kazan[0], marker='o', s=50)
+ax_El.scatter(beta, Kazan[0], marker='o', s=50, label=r'$ \langle E_L(a) \rangle $')
 ax_El.errorbar(beta, Kazan[0], yerr=Kazan[1], fmt='.', capsize=5, color='black')
-ax_El.set_xlabel(' a ', fontsize=15)
+ax_El.plot(xfit, fitE_parab(xfit, a_Eparab, b_Eparab), label='Fit curve', color='crimson')
+ax_El.set_xlabel(r'$ a $', fontsize=15)
 ax_El.set_ylabel(r'$ \langle E \rangle $', fontsize=15)
+ax_El.legend()
 ax_El.grid(True)
 plt.show()
 
 
+
+#fitting Var curve
+parVar_parab, covVar_parab = curve_fit(fitVar_parab, beta, Kazan[2], sigma=Kazan[3])
+a_Varparab, b_Varparab, c_Varparab = parVar_parab
+
+#plotting Var
 fig_var, ax_var = plt.subplots(figsize=(6.2, 4.5))
-ax_var.scatter(beta, Kazan[2], marker='o', s=50)
+ax_var.scatter(beta, Kazan[2], marker='o', s=50, label=r'$ \sigma_{E_L}^2 $')
 ax_var.errorbar(beta, Kazan[2], yerr=Kazan[3], fmt='.',  capsize=5, color='black')
-ax_var.set_xlabel(' a ', fontsize=15)
+ax_var.plot(xfit, fitVar_parab(xfit, a_Varparab, b_Varparab, c_Varparab), label='Fit curve', color='limegreen')
+ax_var.set_xlabel(r'$ a $', fontsize=15)
 ax_var.set_ylabel(r'$ \langle E^2 \rangle - \langle E \rangle^2 $', fontsize=15)
+ax_var.legend()
 ax_var.grid(True)
 plt.show()
-
 end_time1 = time.time()
 elapsed_time1 = end_time1 - start_time1
 print(f"CPU time 'Local energy sampling': {elapsed_time1:.4f} seconds")
 
 #Parabola: 16 punti, n=10^5, s=10^2 -> t= 24sec
 
-"""
+
 
 
 
@@ -452,7 +476,7 @@ plt.show()
 
 # ---------    GAUSSIAN TRIAL FUNCTION HARMONIC OSCILLATOR
 """
-par_VMC = np.arange(0.1, 1.5, 0.1)
+par_VMC = np.arange(0.1, 1.5, 0.05)
 
 
 def VMC( n_MC, s_blocks ):
@@ -580,28 +604,55 @@ def VMC( n_MC, s_blocks ):
     return E_l, err1, variance, err_var
 
 
-#Plotting the results
+
+
 start_time1 = time.time()
+
+def fitE_gauss(x, a, b):
+    return a/x + b*x
+
+def fitVar_gauss(x, a, b, c):
+    return a/x**2 + b*x**2 + c
+
 
 Kazan = VMC( 100000, 100)  
 beta = par_VMC
+xfit = np.linspace(min(beta), max(beta), 100)
 
+
+#fitting E curve
+parE_gauss, covE_gauss = curve_fit(fitE_gauss, beta, Kazan[0], sigma=Kazan[1])
+a_Egauss, b_Egauss = parE_gauss
+
+#plotting E
 fig_El, ax_El = plt.subplots(figsize=(6.2, 4.5))
-ax_El.scatter(beta, Kazan[0], marker='o', s=50)
+ax_El.scatter(beta, Kazan[0], marker='o', s=50, label=r'$ \langle E_L(\beta) \rangle $')
 ax_El.errorbar(beta, Kazan[0], yerr=Kazan[1], fmt='.', capsize=5, color='black')
+ax_El.plot(xfit, fitE_gauss(xfit, a_Egauss, b_Egauss), label='Fit curve', color='crimson')
 ax_El.set_xlabel(r'$ \beta = 1 / 4\sigma^2 $', fontsize=15)
 ax_El.set_ylabel(r'$ \langle E \rangle $', fontsize=15)
+ax_El.legend()
 ax_El.grid(True)
 plt.show()
 
 
+
+#fitting Var curve
+parVar_gauss, covVar_gauss = curve_fit(fitVar_gauss, beta, Kazan[2], sigma=Kazan[3])
+a_Vargauss, b_Vargauss, c_Vargauss = parVar_gauss
+
+#plotting Var
 fig_var, ax_var = plt.subplots(figsize=(6.2, 4.5))
-ax_var.scatter(beta, Kazan[2], marker='o', s=50)
+ax_var.scatter(beta, Kazan[2], marker='o', s=50, label=r'$ \sigma_{E_L}^2 $')
 ax_var.errorbar(beta, Kazan[2], yerr=Kazan[3], fmt='.',  capsize=5, color='black')
+ax_var.plot(xfit, fitVar_gauss(xfit, a_Vargauss, b_Vargauss, c_Vargauss), label='Fit curve', color='limegreen')
 ax_var.set_xlabel(r'$ \beta = 1 / 4\sigma^2 $', fontsize=15)
 ax_var.set_ylabel(r'$ \langle E^2 \rangle - \langle E \rangle^2 $', fontsize=15)
+ax_var.legend()
 ax_var.grid(True)
 plt.show()
+
+
 
 end_time1 = time.time()
 elapsed_time1 = end_time1 - start_time1
@@ -609,8 +660,8 @@ print(f"CPU time 'Local energy sampling': {elapsed_time1:.4f} seconds")
 
 #Gauss: 16 punti, n=10^5, s=10^2 -> t= 27sec
 #Gauss: 31 punti, n=10^5, s=10^2 -> t= 53sec
-"""
 
+"""
 
 
 
@@ -785,7 +836,7 @@ print(f"CPU time 'Local energy sampling': {elapsed_time1:.4f} seconds")
 
 # ---------    EXPONENTIAL TRIAL FUNCTION: HYDROGEN ATOM (spherical wave: n=1)
 
-
+"""
 par_VMC = np.arange(0.5, 1.5, 0.1)
 
 
@@ -947,7 +998,7 @@ print(f"CPU time 'Local energy sampling': {elapsed_time1:.4f} seconds")
 
 #Exponential_hydrogen: 10 punti, n=10^5, s=10^2 -> t= 20sec
 
-
+"""
 
 
 
