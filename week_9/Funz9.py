@@ -20,6 +20,21 @@ def random_spin_lattice(N, M):
     return np.random.choice([-1,1], size=(N,M))
 
 
+def ordered_spin_lattice(N, M):
+    lattice = np.zeros((N, M))
+    for i in range(N):
+        for j in range(M):
+            if (i+j)%2 == 0:
+                lattice[i,j] = 1
+            else:
+                lattice[i,j] = -1   
+    return lattice
+
+
+def display_spin_lattice(lattice):
+    return Image.fromarray(np.uint8((lattice + 1) * 0.5 * 255))
+
+
 @njit
 def initial_energy(s):
     N, M = s.shape
@@ -28,6 +43,7 @@ def initial_energy(s):
         for j in range(M):
             total += -s[i, j] * (s[(i-1)%N, j] + s[i, (j+1)%M])   
     return total
+
             
 
 
@@ -57,7 +73,8 @@ def Ising_conditions(s, beta):
 
 def accumulation(No, Nv, beta, eqSteps, mcSteps):
     L = No * Nv
-    config = random_spin_lattice(No, Nv)
+    config = random_spin_lattice(No, Nv)   #Starting random configuration
+    #config = ordered_spin_lattice(No, Nv)   #Starting chessboard configuration
     
     for i in range(eqSteps):
         config = Ising_conditions(config, beta)[0]
@@ -81,28 +98,179 @@ def accumulation(No, Nv, beta, eqSteps, mcSteps):
             M[j] = Mag
             M2[j] = Mag * Mag
             j += 1
-        
+            
+    """
+    # Display the last lattice configuration
+    spin_color = mcolors.ListedColormap(['blue', 'red']) #blue:-1, red:+1
+    fig_snapshot, ax_snapshot = plt.subplots(figsize=(6.2, 4.5))
+    ax_snapshot.imshow(display_spin_lattice(config), cmap = spin_color)
+    ax_snapshot.axis('off')  # Turn off axis
+    plt.show()
+    """  
     return M / L, M2 / L, E / L, E2 / L
 
 
-"""
 
-Beta = 1.5
-neqs = 10**6
+"""
+Beta = 1
+neqs = 0
 nmcs = 10**6
-n1 = n2 = 20
+n1 = n2 = 30
 
 
 results = accumulation(n1, n2, Beta, neqs, nmcs)
 Nsteps_lst = np.arange(int(nmcs/(n1*n2))+1)
+
 fig_m, ax_m = plt.subplots(figsize=(6.2, 4.5))
 ax_m.plot(Nsteps_lst, results[0], marker='o' )
-ax_m.set_xlabel(r'$ MCsteps/100 $', fontsize=15)
+ax_m.set_xlabel(r'$ MCsteps/{} $'.format(n1*n2), fontsize=15)
 ax_m.set_ylabel(r'$ M / N $', fontsize=15)
 ax_m.grid(True)
 plt.show()
 
+fig_e, ax_e = plt.subplots(figsize=(6.2, 4.5))
+ax_e.plot(Nsteps_lst, results[2], marker='o' )
+ax_e.set_xlabel(r'$ MCsteps/{} $'.format(n1*n2), fontsize=15)
+ax_e.set_ylabel(r'$ E / N $', fontsize=15)
+ax_e.grid(True)
+plt.show()
 """
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# OPEN BOUNDARY CONDITIONS 
+# -----------------------------------------------------------------------------
+@njit
+def initial_energy_open(s):
+    N, M = s.shape
+    total = 0
+    for i in range(N):
+        for j in range(M):
+            if i==0 and j!=(M-1):
+                total += s[0,j+1]
+            elif i==0 and j==(M-1):
+                total += 0
+            elif j==(M-1) and i!=0:
+                total += s[i-1, M-1]
+            else:
+                total += s[i-1, j] + s[i, j+1]   
+    return total
+
+
+
+@njit
+def Ising_conditions_open(s, beta):
+    N, M = s.shape
+    i = np.random.randint(0, N)
+    j =  np.random.randint(0, M)
+    
+    if i==0 and j==0:
+        NNsum = s[0,1] + s[1,0]
+    elif i==(N-1) and j==(M-1):
+        NNsum = s[N-2, M-1] + s[N-1, M-2]
+    elif i==(N-1) and j==0:
+        NNsum = s[N-2, 0] + s[N-1, 1]
+    elif i==0 and j==(M-1):
+        NNsum = s[1, M-1] + s[0, M-2]
+    elif i==0 and j!=0 and j!= (M-1):
+        NNsum = s[0, j-1] + s[0, j+1] + s[1, j]
+    elif i==(N-1) and j!=0 and j!= (M-1):
+        NNsum = s[N-1, j-1] + s[N-1, j+1] + s[N-2, j]
+    elif j==0 and i!=0 and i!= (N-1):
+        NNsum = s[i-1, 0] + s[i+1, 0] + s[i+1, 1]
+    elif j==(M-1) and i!=0 and i!= (N-1):
+        NNsum = s[i-1, M-1] + s[i+1, M-1] + s[i, M-2]
+    else:
+        NNsum = s[i-1, j] + s[i+1, j] + s[i, j-1] + s[i, j+1]
+    
+    dE = 2 * s[i, j] * NNsum
+    
+    if dE <= 0:
+        s[i, j] *= -1
+        deltaE = dE
+        dM = 2 * s[i, j]
+    elif np.exp(-dE * beta) > np.random.rand():
+        s[i, j] *= -1
+        deltaE = dE
+        dM = 2 * s[i, j]
+    
+    return s, deltaE, dM
+
+
+
+def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
+    L = No * Nv
+    config = random_spin_lattice(No, Nv)   #Starting random configuration
+    #config = ordered_spin_lattice(No, Nv)   #Starting chessboard configuration
+    
+    for i in range(eqSteps):
+        config = Ising_conditions_open(config, beta)[0]
+    
+    Ener = initial_energy_open(config)
+    Mag = np.sum(config)
+    E, E2 =  np.zeros(int(mcSteps/(No*Nv))+1), np.zeros(int(mcSteps/(No*Nv))+1)
+    M, M2 =  np.zeros(int(mcSteps/(No*Nv))+1), np.zeros(int(mcSteps/(No*Nv))+1)
+    E[0], E2[0], M[0], M2[0] = Ener, Ener * Ener, Mag, Mag * Mag
+    
+    j= 1
+    
+    for i in range(1, mcSteps + 1):
+        config, dE, dM = Ising_conditions_open(config, beta)
+        Ener += dE
+        Mag += dM
+        
+        if i%L == 0:
+            E[j] = Ener
+            E2[j] = Ener * Ener
+            M[j] = Mag
+            M2[j] = Mag * Mag
+            j += 1
+            
+    
+    # Display the last lattice configuration
+    spin_color = mcolors.ListedColormap(['blue', 'red']) #blue:-1, red:+1
+    fig_snapshot, ax_snapshot = plt.subplots(figsize=(6.2, 4.5))
+    ax_snapshot.imshow(display_spin_lattice(config), cmap = spin_color)
+    ax_snapshot.axis('off')  # Turn off axis
+    plt.show()
+     
+    return M / L, M2 / L, E / L, E2 / L
+
+
+
+Beta = 0.5
+neqs = 0
+nmcs = 10**6
+n1 = n2 = 30
+
+
+results_open = accumulation_open(n1, n2, Beta, neqs, nmcs)
+Nsteps_lst = np.arange(int(nmcs/(n1*n2))+1)
+
+fig_mo, ax_mo = plt.subplots(figsize=(6.2, 4.5))
+ax_mo.plot(Nsteps_lst, results_open[0], marker='o', label='Open Boundary Conditions')
+ax_mo.set_xlabel(r'$ MCsteps/{} $'.format(n1*n2), fontsize=15)
+ax_mo.set_ylabel(r'$ M / N $', fontsize=15)
+ax_mo.legend()
+ax_mo.grid(True)
+plt.show()
+
+fig_eo, ax_eo = plt.subplots(figsize=(6.2, 4.5))
+ax_eo.plot(Nsteps_lst, results_open[2], marker='o', label='Open Boundary Conditions')
+ax_eo.set_xlabel(r'$ MCsteps/{} $'.format(n1*n2), fontsize=15)
+ax_eo.set_ylabel(r'$ E / N $', fontsize=15)
+ax_eo.legend()
+ax_eo.grid(True)
+plt.show()
+
+# -----------------------------------------------------------------------------
+
+
+
+
 
 
 
@@ -117,7 +285,8 @@ def display_spin_lattice(lattice):
 
 def animation_Ising(No, Nv, beta, mcSteps, plot_name):
     L = No * Nv
-    config = random_spin_lattice(No, Nv)
+    config = random_spin_lattice(No, Nv)   #Starting random configuration
+    #config = ordered_spin_lattice(No, Nv)   #Starting chessboard configuration
     fig = plt.figure()
     
     spin_color = mcolors.ListedColormap(['blue', 'red'])
@@ -140,7 +309,7 @@ def animation_Ising(No, Nv, beta, mcSteps, plot_name):
     return
 
 
-animation_Ising(30, 30, 0.5, 200000, 'Ising_2D.gif')
+animation_Ising(30, 30, 1.5, 200000, 'Ising_2D.gif')
 plt.close('all')
 """
 # -----------------------------------------------------------------------------
@@ -153,7 +322,7 @@ plt.close('all')
 # PLOTTING PHYSICAL QUANTITIES: <|M|>/N, <E>/N, X/N, Cv/N
 # -----------------------------------------------------------------------------
 
-
+"""
 @njit
 def block_average(lst, s):
     
@@ -211,7 +380,7 @@ def T_variation(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
     return m, e, c, x, s_m, s_e, s_c, s_x
 
 
-resultsT = T_variation(10, 10, 1, 4, 0.25, 10*5, 10**6, 10)
+resultsT = T_variation(30, 30, 1, 4, 0.25, 10*5, 10**7, 100)
 Nsteps_lst =  np.arange(1, 4, 0.25)
 
 fig_mT, ax_mT = plt.subplots(figsize=(6.2, 4.5))
@@ -245,7 +414,7 @@ ax_xT.set_xlabel(r'$ T [K] $', fontsize=15)
 ax_xT.set_ylabel(r'$ \chi / N $', fontsize=15)
 ax_xT.grid(True)
 plt.show()
-
+"""
 # -----------------------------------------------------------------------------
 
 
