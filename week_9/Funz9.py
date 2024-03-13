@@ -180,7 +180,7 @@ def Ising_conditions_open(s, beta):
     elif i==(N-1) and j!=0 and j!= (M-1):
         NNsum = s[N-1, j-1] + s[N-1, j+1] + s[N-2, j]
     elif j==0 and i!=0 and i!= (N-1):
-        NNsum = s[i-1, 0] + s[i+1, 0] + s[i+1, 1]
+        NNsum = s[i-1, 0] + s[i+1, 0] + s[i, 1]
     elif j==(M-1) and i!=0 and i!= (N-1):
         NNsum = s[i-1, M-1] + s[i+1, M-1] + s[i, M-2]
     else:
@@ -243,7 +243,7 @@ def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
 
 Beta = 0.5
 neqs = 0
-nmcs = 10**6
+nmcs = 10**7
 n1 = n2 = 30
 
 
@@ -267,6 +267,9 @@ ax_eo.grid(True)
 plt.show()
 
 # -----------------------------------------------------------------------------
+
+
+
 
 
 
