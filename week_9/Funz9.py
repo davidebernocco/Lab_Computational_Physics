@@ -174,7 +174,6 @@ def averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps):
     fatt_aver = 1 / (len(data[0]))
     e_aver = np.sum(data[2]) * fatt_aver
     e2_aver = np.sum(data[3]) * fatt_aver
-    m_aver = np.sum(data[0]) * fatt_aver
     mABS_aver = np.sum(abs(data[0])) * fatt_aver
     m2_aver = np.sum(data[1]) * fatt_aver
     C = (e2_aver - L * e_aver * e_aver) * beta ** 2 
@@ -188,7 +187,6 @@ def average_error(data, No, Nv, beta, eqSteps, mcSteps, s):
     aver = averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps)
     err_e = block_average(data[2],s)
     err_e2 = block_average(data[3],s)
-    err_m = block_average(data[0],s)
     err_m2 = block_average(data[1],s)
     err_mABS = block_average(abs(data[0]), s)
     err_C = math.sqrt(err_e2**2 + 4*L**2*aver[0]**2*err_e**2) * beta**2
@@ -213,7 +211,7 @@ def T_variation(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
     return m, e, c, x, s_m, s_e, s_c, s_x
 
 
-resultsT = T_variation(10, 10, 1, 4, 0.25, 10**6, 10**6, 10)
+resultsT = T_variation(10, 10, 1, 4, 0.25, 10*5, 10**6, 10)
 Nsteps_lst =  np.arange(1, 4, 0.25)
 
 fig_mT, ax_mT = plt.subplots(figsize=(6.2, 4.5))
@@ -223,28 +221,31 @@ ax_mT.set_xlabel(r'$ T [K] $', fontsize=15)
 ax_mT.set_ylabel(r'$ \langle |M| \rangle / N $', fontsize=15)
 ax_mT.grid(True)
 plt.show()
-"""
+
 fig_eT, ax_eT = plt.subplots(figsize=(6.2, 4.5))
-ax_eT.plot(Nsteps_lst, resultsT[1], marker='o' )
+ax_eT.scatter(Nsteps_lst, resultsT[1], marker='o', s=50)
+ax_eT.errorbar(Nsteps_lst, resultsT[1], yerr=resultsT[5], fmt='.',  capsize=5, color='black')
 ax_eT.set_xlabel(r'$ T [K] $', fontsize=15)
 ax_eT.set_ylabel(r'$ \langle E \rangle / N $', fontsize=15)
 ax_eT.grid(True)
 plt.show()
 
 fig_cT, ax_cT = plt.subplots(figsize=(6.2, 4.5))
-ax_cT.plot(Nsteps_lst, resultsT[2], marker='o' )
+ax_cT.scatter(Nsteps_lst, resultsT[2], marker='o', s=50)
+ax_cT.errorbar(Nsteps_lst, resultsT[2], yerr=resultsT[6], fmt='.',  capsize=5, color='black')
 ax_cT.set_xlabel(r'$ T [K] $', fontsize=15)
 ax_cT.set_ylabel(r'$ c_V / N $', fontsize=15)
 ax_cT.grid(True)
 plt.show()
 
 fig_xT, ax_xT = plt.subplots(figsize=(6.2, 4.5))
-ax_xT.plot(Nsteps_lst, resultsT[3], marker='o' )
+ax_xT.scatter(Nsteps_lst, resultsT[3], marker='o', s=50)
+ax_xT.errorbar(Nsteps_lst, resultsT[3], yerr=resultsT[7], fmt='.',  capsize=5, color='black')
 ax_xT.set_xlabel(r'$ T [K] $', fontsize=15)
 ax_xT.set_ylabel(r'$ \chi / N $', fontsize=15)
 ax_xT.grid(True)
 plt.show()
-"""
+
 # -----------------------------------------------------------------------------
 
 
