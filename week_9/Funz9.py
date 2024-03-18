@@ -129,13 +129,13 @@ def initial_energy_open(s):
     for i in range(N):
         for j in range(M):
             if i==0 and j!=(M-1):
-                total += s[0,j+1]
+                total += -s[i,j] * s[0,j+1]
             elif i==0 and j==(M-1):
                 total += 0
             elif j==(M-1) and i!=0:
-                total += s[i-1, M-1]
+                total += -s[i,j] *  s[i-1, M-1]
             else:
-                total += s[i-1, j] + s[i, j+1]   
+                total += -s[i,j] * (s[i-1, j] + s[i, j+1])  
     return total
 
 
@@ -210,12 +210,15 @@ def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
             
     
     # Display the last lattice configuration
-    spin_color = mcolors.ListedColormap(['blue', 'red']) #blue:-1, red:+1
+    cmap = { -1: [0, 0, 1], 1: [1, 0, 0] }   # blue: -1, red: +1
+    def lattice_to_image(lattice):  # Convert spin lattice to colored image
+        colored_pixels = [[cmap[spin] for spin in row] for row in lattice]
+        return Image.fromarray(np.uint8(colored_pixels) * 255)
     fig_snapshot, ax_snapshot = plt.subplots(figsize=(6.2, 4.5))
-    ax_snapshot.imshow(display_spin_lattice(config), cmap = spin_color)
-    ax_snapshot.axis('off')  # Turn off axis
+    ax_snapshot.imshow(lattice_to_image(config))
+    ax_snapshot.axis('off')
     plt.show()
-     
+    
     return M / L, M2 / L, E / L, E2 / L
 
 
