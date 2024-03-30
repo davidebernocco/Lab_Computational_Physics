@@ -6,18 +6,13 @@ Library of self-made functions needed for the codes implemented for the exercise
 
 import numpy as np
 from PIL import Image
-from ipywidgets import interact
 from numba import njit
 import math
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 import matplotlib.colors as mcolors
-from matplotlib.animation import FuncAnimation
 from matplotlib.animation import PillowWriter
-
-
-
 
 
 
@@ -106,13 +101,16 @@ def accumulation(No, Nv, beta, eqSteps, mcSteps):
             
     """
     # Display the last lattice configuration
-    spin_color = mcolors.ListedColormap(['blue', 'red']) #blue:-1, red:+1
+    cmap = { -1: [0, 0, 1], 1: [1, 0, 0] }   # blue: -1, red: +1
+    def lattice_to_image(lattice):  # Convert spin lattice to colored image
+        colored_pixels = [[cmap[spin] for spin in row] for row in lattice]
+        return Image.fromarray(np.uint8(colored_pixels) * 255)
     fig_snapshot, ax_snapshot = plt.subplots(figsize=(6.2, 4.5))
-    ax_snapshot.imshow(display_spin_lattice(config), cmap = spin_color)
-    ax_snapshot.axis('off')  # Turn off axis
+    ax_snapshot.imshow(lattice_to_image(config))
+    ax_snapshot.axis('off')
     plt.show()
     """  
-    return M / L, M2 / L, E / L, E2 / L
+    return M , M2 , E , E2 
 
 
 
@@ -219,7 +217,7 @@ def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
     ax_snapshot.axis('off')
     plt.show()
     
-    return M / L, M2 / L, E / L, E2 / L
+    return M , M2 , E , E2 
 
 
 
@@ -281,48 +279,59 @@ def block_average(lst, s):
 
 
 def averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps):
-    L = No*Nv
-    fatt_aver = 1 / (len(data[0]))
-    e_aver = np.sum(data[2]) * fatt_aver
-    e2_aver = np.sum(data[3]) * fatt_aver
-    mABS_aver = np.sum(abs(data[0])) * fatt_aver
-    m2_aver = np.sum(data[1]) * fatt_aver
-    C = (e2_aver - L * e_aver * e_aver) * beta ** 2 
-    X = (m2_aver - L * mABS_aver * mABS_aver) * beta
+    E_aver = np.mean(data[2])
+    E2_aver = np.mean(data[3])
+    M_ABS_aver = np.mean(abs(data[0]))
+    M2_aver = np.mean(data[1])
+    C = np.var(data[2]) * beta ** 2 
+    X = np.var(abs(data[0])) * beta
 
-    return e_aver, mABS_aver, C, X
+    return E_aver, M_ABS_aver, C, X
+
 
 
 def average_error(data, No, Nv, beta, eqSteps, mcSteps, s):
-    L = No*Nv
     aver = averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps)
-    err_e = block_average(data[2],s)
-    err_e2 = block_average(data[3],s)
-    err_m2 = block_average(data[1],s)
-    err_mABS = block_average(abs(data[0]), s)
-    err_C = math.sqrt(err_e2**2 + 4*L**2*aver[0]**2*err_e**2) * beta**2
-    err_X =  math.sqrt(err_m2**2 + 4*L**2*aver[1]**2*err_mABS**2) * beta
+    err_E = block_average(data[2],s)
+    err_E2 = block_average(data[3],s)
+    err_M2 = block_average(data[1],s)
+    err_M_ABS = block_average(abs(data[0]), s)
+    sigma2_E = (data[2]-aver[0])**2
+    sigma2_M_ABS = (data[0]-aver[1])**2
+    err_C = block_average(sigma2_E, s) * (1/(No*Nv)) * beta**2   
+    err_X = block_average(sigma2_M_ABS, s) * (1/(No*Nv)) * beta   
     
-    return err_e, err_mABS, err_C, err_X
+    return err_E, err_M_ABS, err_C, err_X
     
 
 
 def T_variation(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
+    N = No * Nv
     arrT = np.arange(T_m, T_M, d_T)
-    e, m = np.zeros(len(arrT)),  np.zeros(len(arrT))
-    c, x = np.zeros(len(arrT)), np.zeros(len(arrT))
-    s_e, s_m =  np.zeros(len(arrT)),  np.zeros(len(arrT))
-    s_c, s_x =  np.zeros(len(arrT)),  np.zeros(len(arrT))
+    E, M = np.zeros(len(arrT)),  np.zeros(len(arrT))
+    C, X = np.zeros(len(arrT)), np.zeros(len(arrT))
+    s_E, s_M =  np.zeros(len(arrT)),  np.zeros(len(arrT))
+    s_C, s_X =  np.zeros(len(arrT)),  np.zeros(len(arrT))
     
     for i in range(len(arrT)):
         data = accumulation(No, Nv, 1/arrT[i], eqSteps, mcSteps)
-        e[i], m[i], c[i], x[i] = averaged_quantities(data, No, Nv, 1/arrT[i], eqSteps, mcSteps)
-        s_e[i], s_m[i], s_c[i], s_x[i] = average_error(data, No, Nv, 1/arrT[i], eqSteps, mcSteps, s)
+        E[i], M[i], C[i], X[i] = averaged_quantities(data, No, Nv, 1/arrT[i], eqSteps, mcSteps)
+        s_E[i], s_M[i], s_C[i], s_X[i] = average_error(data, No, Nv, 1/arrT[i], eqSteps, mcSteps, s)
         
-    return m, e, c, x, s_m, s_e, s_c, s_x
+    return M/N, E/N, C/N, X/N, s_M/N, s_E/N, s_C/N, s_X/N
 
 
-
+@njit
+def c_as_derivative(No, Nv, e, dT, s_e):
+    N = No*Nv
+    c = np.zeros(len(e) - 2)
+    s_c = np.zeros(len(e) - 2)
+    E = e * N
+    s_E = s_e *N
+    for i in range(1, len(e) - 1):
+        c[i-1] = (E[i+1] - E[i-1]) / (2*dT)
+        s_c[i-1] = math.sqrt(s_E[i+1]**2 + s_E[i-1]**2) / (2*dT)
+    return c/N, s_c/N
 
 
 
