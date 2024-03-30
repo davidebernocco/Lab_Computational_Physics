@@ -280,9 +280,7 @@ def block_average(lst, s):
 
 def averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps):
     E_aver = np.mean(data[2])
-    E2_aver = np.mean(data[3])
     M_ABS_aver = np.mean(abs(data[0]))
-    M2_aver = np.mean(data[1])
     C = np.var(data[2]) * beta ** 2 
     X = np.var(abs(data[0])) * beta
 
@@ -293,8 +291,6 @@ def averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps):
 def average_error(data, No, Nv, beta, eqSteps, mcSteps, s):
     aver = averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps)
     err_E = block_average(data[2],s)
-    err_E2 = block_average(data[3],s)
-    err_M2 = block_average(data[1],s)
     err_M_ABS = block_average(abs(data[0]), s)
     sigma2_E = (data[2]-aver[0])**2
     sigma2_M_ABS = (data[0]-aver[1])**2
@@ -335,4 +331,5 @@ def c_as_derivative(No, Nv, e, dT, s_e):
 
 
 
-
+def fitE(x, L, k, x0, c):
+    return L / (1 + np.exp(-k * (x - x0))) + c
