@@ -13,6 +13,9 @@ import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 import matplotlib.colors as mcolors
 from matplotlib.animation import PillowWriter
+from PIL import Image, ImageSequence
+import os
+
 
 
 
@@ -73,8 +76,8 @@ def Ising_conditions(s, beta):
 
 def accumulation(No, Nv, beta, eqSteps, mcSteps):
     L = No * Nv
-    config = random_spin_lattice(No, Nv)   #Starting random configuration
-    #config = ordered_spin_lattice(No, Nv)   #Starting chessboard configuration
+    #config = random_spin_lattice(No, Nv)   #Starting random configuration
+    config = ordered_spin_lattice(No, Nv)   #Starting chessboard configuration
     
     for i in range(eqSteps):
         config = Ising_conditions(config, beta)[0]
@@ -208,6 +211,7 @@ def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
             
     
     # Display the last lattice configuration
+    """
     cmap = { -1: [0, 0, 1], 1: [1, 0, 0] }   # blue: -1, red: +1
     def lattice_to_image(lattice):  # Convert spin lattice to colored image
         colored_pixels = [[cmap[spin] for spin in row] for row in lattice]
@@ -216,6 +220,7 @@ def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
     ax_snapshot.imshow(lattice_to_image(config))
     ax_snapshot.axis('off')
     plt.show()
+    """
     
     return M , M2 , E , E2 
 
@@ -255,6 +260,17 @@ def animation_Ising(No, Nv, beta, mcSteps, plot_name):
 
 
 
+
+def save_frames_from_gif(gif_path, output_folder):
+   
+    # Open the GIF file
+    with Image.open(gif_path) as gif:
+        # Iterate over each frame in the GIF
+        for i, frame in enumerate(ImageSequence.Iterator(gif)):
+            # Construct the output file name
+            output_filename = os.path.join(output_folder, f"frame_{i}.png")
+            # Save the frame as PNG
+            frame.save(output_filename, format="PNG")
 
 
 
@@ -317,6 +333,26 @@ def T_variation(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
     return M/N, E/N, C/N, X/N, s_M/N, s_E/N, s_C/N, s_X/N
 
 
+
+
+def T_variation_open(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
+    N = No * Nv
+    arrT = np.arange(T_m, T_M, d_T)
+    E, M = np.zeros(len(arrT)),  np.zeros(len(arrT))
+    C, X = np.zeros(len(arrT)), np.zeros(len(arrT))
+    s_E, s_M =  np.zeros(len(arrT)),  np.zeros(len(arrT))
+    s_C, s_X =  np.zeros(len(arrT)),  np.zeros(len(arrT))
+    
+    for i in range(len(arrT)):
+        data = accumulation_open(No, Nv, 1/arrT[i], eqSteps, mcSteps)
+        E[i], M[i], C[i], X[i] = averaged_quantities(data, No, Nv, 1/arrT[i], eqSteps, mcSteps)
+        s_E[i], s_M[i], s_C[i], s_X[i] = average_error(data, No, Nv, 1/arrT[i], eqSteps, mcSteps, s)
+        
+    return M/N, E/N, C/N, X/N, s_M/N, s_E/N, s_C/N, s_X/N
+
+
+
+
 @njit
 def c_as_derivative(No, Nv, e, dT, s_e):
     N = No*Nv
@@ -333,3 +369,5 @@ def c_as_derivative(No, Nv, e, dT, s_e):
 
 def fitE(x, L, k, x0, c):
     return L / (1 + np.exp(-k * (x - x0))) + c
+
+
