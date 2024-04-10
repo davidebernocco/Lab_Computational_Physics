@@ -42,22 +42,25 @@ def trial_move(lattice, dictionary, Np, delta_R):
             lattice[i, j] = 0
             lattice[(i+1)%Lo, j] = p
             dictionary[p] = ((i+1)%Lo, j)
-            delta_R[k][0] += 1
-        elif trial == 2 and lattice[i,(j+1)%Lv]:
+            delta_R[k][1] += 1
+        elif trial == 2 and lattice[i,(j+1)%Lv] == 0:
             lattice[i, j] = 0
             lattice[i,(j+1)%Lv] = p
             dictionary[p] = (i, (j+1)%Lv)
-            delta_R[k][1] += 1
+            delta_R[k][0] += 1
         elif trial == 3 and lattice[(i-1)%Lo, j] == 0:
             lattice[i, j] = 0
             lattice[(i-1)%Lo, j] = p
             dictionary[p] = ((i-1)%Lo, j)
-            delta_R[k][0] -= 1
+            delta_R[k][1] -= 1
         elif trial == 4 and lattice[i,(j-1)%Lv]  == 0:
             lattice[i, j] = 0
             lattice[i,(j-1)%Lv] = p
             dictionary[p] = (i, (j-1)%Lv)
-            delta_R[k][1] -= 1
+            delta_R[k][0] -= 1
+        else:
+            delta_R[k][0] += 0
+            delta_R[k][1] += 0
 
     return lattice, dictionary, delta_R
             
@@ -73,8 +76,9 @@ def MC_iteration(Lo, Lv, Np, Nmc):
     
     for i in range(Nmc):
         latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
-        DR2_aver[i] = np.mean(np.sum(dR**2, axis=1))
-        D[i] = DR2_aver[i] / (i+1)
+        dR2 = dR**2
+        DR2_aver[i] = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
+        D[i] = DR2_aver[i] / ((i+1))
     
     return DR2_aver, D/4           
 
