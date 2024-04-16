@@ -132,7 +132,53 @@ def sD_N(L, r, Nmc, s):
 
 
 
+# -----------------------------------------------------------------------------
+# SIMULATED ANNEALING
+# -----------------------------------------------------------------------------
 
+
+def function(x):
+    return (x + 0.2) * x + np.cos(14.5 * x - 0.3)
+
+
+
+def simulated_annealing(N, x0, T0, Tfact):
+    x = x0
+    fx = function(x0)
+    T = T0
+    fx_min = fx
+    temp = []
+    minimum = []
+    func_min = []
+    
+    while(T > 10**(-5)):
+        
+        for _ in range(N):
+            
+            # Possible scaling factor within x_new
+            x_new = x + np.sqrt(T)*np.random.uniform(-0.5, 0.5)
+            fx_new = function(x_new)
+            boltzmann = np.exp(- (fx_new - fx) / T)
+            a = np.random.rand()
+            
+            if boltzmann > a:
+                x = x_new
+                fx = fx_new
+            
+            if fx < fx_min:
+                x_min = x
+                fx_min = fx
+                temp.append(T)
+                minimum.append(x_min)
+                func_min.append(fx_min)
+                
+        T *= Tfact
+        
+    temp = np.asarray(temp, dtype=np.float32)
+    minimum = np.asarray(minimum, dtype=np.float32)
+    func_min = np.asarray(func_min, dtype=np.float32)
+   
+    return temp, minimum, func_min
 
 
 

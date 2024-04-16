@@ -8,7 +8,12 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 from Funz10 import MC_iteration, block_average, aver_DT
+from Funz10 import function, simulated_annealing
 
+
+# -----------------------------------------------------------------------------
+# LATTICE GAS MODEL
+# -----------------------------------------------------------------------------
 
 
 
@@ -41,8 +46,6 @@ plt.show()
 
 
 # ----------------
-
-
 the = MC_iteration(30, 30, 27, 225)
 D_aver, sD_aver = block_average(the[1], 10)
 Nsteps_lst =  np.arange(1, 225 + 1, 1)
@@ -66,6 +69,59 @@ ax_D.plot([1,2500], [D_aver, D_aver], label=r'$ \langle D(t) \rangle_T $')
 ax_D.set_xlabel(r'$ t [a.u.] $', fontsize=15)
 ax_D.set_ylabel(r'$ D(t) $', fontsize=15)
 ax_D.grid(True)
+plt.show()
+
+
+
+
+
+# ------------- fluctuations
+# Estimate instantaneous sigma trhough block with fixed size s, making it slide
+# with time
+
+def instant_fluct(d_t, block_size):
+    s = len(d_t) - block_size
+    fluct = np.zeros(s)
+    
+    for k in range(s):
+        fluct[k] = np.std(d_t[k : (s+k)])
+    
+    lst_N = np.arange(block_size, len(d_t))
+    
+    return lst_N, fluct
+    
+
+data = MC_iteration(20, 20, 80, 10**5)
+drugo = instant_fluct(data[1], 100)
+    
+fig_fluct, ax_fluct = plt.subplots(figsize=(6.2, 4.5))
+ax_fluct.scatter(drugo[0], drugo[1], marker='o', s=50, label='Block fluctuations')
+ax_fluct.set_xlabel(r'$ t [a.u.] $', fontsize=15)
+ax_fluct.set_ylabel(r'$ \Delta(t) $', fontsize=15)
+ax_fluct.grid(True)
+ax_fluct.legend()
+plt.show()   
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# SIMULATED ANNEALING
+# -----------------------------------------------------------------------------
+                 
+data_ann = simulated_annealing(10**4, 1,10,0.9)
+x_list = np.arange(-1.5, 1.5, 10**3)
+
+fig_min, ax_min = plt.subplots(figsize=(6.2, 4.5))
+ax_min.scatter(data_ann[1], data_ann[2], marker='o', s=50, label='Local minima')
+ax_min.plot(x_list, function(x_list), label='Analytic function')
+ax_min.set_xlabel(r'$ x $', fontsize=15)
+ax_min.set_ylabel(r'$ f(x) $', fontsize=15)
+ax_min.grid(True)
+ax_min.legend()
 plt.show()
 
 
