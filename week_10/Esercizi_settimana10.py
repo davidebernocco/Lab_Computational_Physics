@@ -105,6 +105,10 @@ plt.show()
 
 
 
+# -------------- D average estimation
+# Remember that probably it is better to stop the simulation at a point in which
+# <dR2(t)> = (L/2)^2 and so Nmc ~ (L/2)^2. Otherwise PBC effects afflict measure
+
 
 
 
