@@ -67,12 +67,30 @@ def trial_move(lattice, dictionary, Np, delta_R):
             
          
             
-def MC_iteration(Lo, Lv, Np, Nmc):
+def MC_iteration(Lo, Lv, Np, Nmc, equilibration, block_size):
     dR = np.zeros((Np, 2))
     DR2_aver = np.zeros(Nmc)
     D = np.zeros(Nmc)
     
     latt, latt_dict = random_gas_lattice(Lo, Lv, Np)
+    
+    if equilibration:
+        dm = 1
+        m0 = 0
+        ns = 0
+        while dm >= 0.005:
+            d_acc = 0
+            for k in range(block_size):
+                latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
+                dR2 = dR**2
+                dr2 = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
+                d_acc += dr2 / (4*(k+1+(ns*block_size)))
+            m1 = d_acc / block_size
+            dm = m1 - m0
+            m0 = m1
+            ns += 1
+        #print(ns)
+        dR = np.zeros((Np, 2))
     
     for i in range(Nmc):
         latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
@@ -108,7 +126,7 @@ def aver_DT(L, Np, Nmc, s, Naver):
     sD_aver = 0
     
     for i in range(Naver):
-        Dt = MC_iteration(L, L, Np, Nmc)[1]
+        Dt = MC_iteration(L, L, Np, Nmc, True, 10**3)[1]
         D, sD = block_average(Dt, s)
         D_aver += D
         sD_aver += sD**2
@@ -117,13 +135,13 @@ def aver_DT(L, Np, Nmc, s, Naver):
     
 
 
-# Non quadra quel che ottengo: che intende come fluttuazioni di D(t)??????
+
 def sD_N(L, r, Nmc, s):
     sD_arr = np.zeros(len(L))
     
     for i in range(len(L)):
         Np = int(r * L[i]**2)
-        Dt = MC_iteration(L[i], L[i], Np, Nmc[i])[1]
+        Dt = MC_iteration(L[i], L[i], Np, Nmc, True, 10**3)[1]
         D, sD = block_average(Dt, s)
         sD_arr[i] = sD
         
