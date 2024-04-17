@@ -120,6 +120,19 @@ def block_average(lst, s):
 
 
 
+def block(lst, s):
+
+    sigma = np.zeros(s, dtype = np.float32)
+    aver =  np.zeros(s, dtype = np.float32)
+    block_size = int(len(lst) / s)
+
+    for k in range(s):
+        sigma[k] = np.std(lst[(k * block_size):((k + 1) * block_size)])
+        aver[k] = np.mean(lst[(k * block_size):((k + 1) * block_size)])
+
+    return aver, sigma
+
+
 
 def aver_DT(L, Np, Nmc, s, Naver):
     D_aver = 0
@@ -147,6 +160,23 @@ def sD_N(L, r, Nmc, s):
         
     return sD_arr
 
+
+
+
+def D_vs_rho(L, r, Nmc, s, Naver):
+    D_arr = np.zeros(len(r))
+    sD_arr = np.zeros(len(r))
+    for i in range(len(r)):
+        Np = int(r[i] * L**2)
+        D_arr[i], sD_arr[i] = aver_DT(L, Np, Nmc, s, Naver)
+        
+    return D_arr, sD_arr
+
+
+
+
+def line(x, a, b):
+    return a*x + b
 
 
 
