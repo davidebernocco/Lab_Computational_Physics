@@ -7,6 +7,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
+from scipy.optimize import curve_fit
 from Funz10 import MC_iteration, block_average, aver_DT, sD_N
 from Funz10 import function, simulated_annealing
 
@@ -202,12 +203,35 @@ plt.show()
 
 # ------------- How D changes with rho at fixed L
 
+rho_lst = np.asarray([0.05*i for i in range(1,20)])
+
+def D_vs_rho(L, r, Nmc, s, Naver):
+    D_arr = np.zeros(len(r))
+    sD_arr = np.zeros(len(r))
+    for i in range(len(r)):
+        Np = int(r[i] * L**2)
+        D_arr[i], sD_arr[i] = aver_DT(L, Np, Nmc, s, Naver)
+        
+    return D_arr, sD_arr
+
+caifa =  D_vs_rho(50, rho_lst, 2500, 25, 30)
 
 
+def line(x, a, b):
+    return a*x + b
 
+parD, covD = curve_fit(line, rho_lst, caifa[0], sigma=caifa[1])
+a_D, b_D = parD
 
-
-
+fig_Drho, ax_Drho = plt.subplots(figsize=(6.2, 4.5))
+ax_Drho.scatter(rho_lst, caifa[0], marker='o', s=50, label='Numerical data')
+ax_Drho.errorbar(rho_lst, caifa[0], yerr=caifa[1], fmt='.', capsize=5, color='black')
+ax_Drho.plot(rho_lst, line(rho_lst, a_D, b_D),  label='Fit curve', color='limegreen')
+ax_Drho.set_xlabel(r'$ \rho $', fontsize=15)
+ax_Drho.set_ylabel(r'$ D $', fontsize=15)
+ax_Drho.grid(True)
+ax_Drho.legend()
+plt.show()
 
 
 
