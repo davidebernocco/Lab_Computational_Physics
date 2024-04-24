@@ -28,6 +28,7 @@ def random_gas_lattice(Lo, Lv, Np):
         
 
 
+# Try to move Np particles WITHOUT REPETITIONS
 def trial_move(lattice, dictionary, Np, delta_R):
     Lo, Lv = lattice.shape
     directions = np.arange(1, 5)
@@ -64,41 +65,90 @@ def trial_move(lattice, dictionary, Np, delta_R):
 
     return lattice, dictionary, delta_R
             
-            
+
+
+# Try to move Np particles, with POSSIBILITY OF REPETITION
+def trial_move_rep(lattice, dictionary, Np, delta_R):
+    Lo, Lv = lattice.shape
+    directions = np.arange(1, 5)
+    particles = [i for i in range(1, Np +1)]
+    
+    for k in range(Np):
+        p = random.choice(particles)
+        trial = random.choice(directions)
+        i,j = dictionary[p]
+        
+        if trial == 1 and lattice[(i+1)%Lo, j] == 0:
+            lattice[i, j] = 0
+            lattice[(i+1)%Lo, j] = p
+            dictionary[p] = ((i+1)%Lo, j)
+            delta_R[k][1] += 1
+        elif trial == 2 and lattice[i,(j+1)%Lv] == 0:
+            lattice[i, j] = 0
+            lattice[i,(j+1)%Lv] = p
+            dictionary[p] = (i, (j+1)%Lv)
+            delta_R[k][0] += 1
+        elif trial == 3 and lattice[(i-1)%Lo, j] == 0:
+            lattice[i, j] = 0
+            lattice[(i-1)%Lo, j] = p
+            dictionary[p] = ((i-1)%Lo, j)
+            delta_R[k][1] -= 1
+        elif trial == 4 and lattice[i,(j-1)%Lv]  == 0:
+            lattice[i, j] = 0
+            lattice[i,(j-1)%Lv] = p
+            dictionary[p] = (i, (j-1)%Lv)
+            delta_R[k][0] -= 1
+        else:
+            delta_R[k][0] += 0
+            delta_R[k][1] += 0
+
+    return lattice, dictionary, delta_R
+
+
+
+# Perform an equilibration sequence before data are effectively collected           
+def equil_sequence(Np, block_size, latt, latt_dict, dR):
+    dm = 1
+    m0 = 0
+    ns = 0
+    while dm > 10**(-3):
+        d_acc = 0
+        for k in range(block_size):
+            latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
+            dR2 = dR**2
+            dr2 = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
+            d_acc += dr2 / (4*(k+1+(ns*block_size)))
+        m1 = d_acc / block_size
+        dm = abs(m1 - m0)
+        m0 = m1
+        ns += 1
+    print(ns)
+    dR = np.zeros((Np, 2))
+    
+    return dR, latt, latt_dict
          
-            
+  
+
+# Main part of the code: data are collected for Nmc steps          
 def MC_iteration(Lo, Lv, Np, Nmc, equilibration, block_size):
     dR = np.zeros((Np, 2))
     DR2_aver = np.zeros(Nmc)
     D = np.zeros(Nmc)
+    DT = np.zeros(Nmc)
     
     latt, latt_dict = random_gas_lattice(Lo, Lv, Np)
     
     if equilibration:
-        dm = 1
-        m0 = 0
-        ns = 0
-        while dm >= 0.005:
-            d_acc = 0
-            for k in range(block_size):
-                latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
-                dR2 = dR**2
-                dr2 = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
-                d_acc += dr2 / (4*(k+1+(ns*block_size)))
-            m1 = d_acc / block_size
-            dm = m1 - m0
-            m0 = m1
-            ns += 1
-        #print(ns)
-        dR = np.zeros((Np, 2))
+        dR, latt, latt_dict = equil_sequence(Np, block_size, latt, latt_dict, dR)      
     
     for i in range(Nmc):
         latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
         dR2 = dR**2
         DR2_aver[i] = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
         D[i] = DR2_aver[i] / ((i+1))
+        DT[i] = np.mean(D[:i+1])
     
-    return DR2_aver, D/4           
+    return DR2_aver, D/4 , DT/4        
 
 
 

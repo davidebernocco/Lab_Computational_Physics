@@ -41,6 +41,13 @@ ax_D.set_ylabel(r'$ D(t) $', fontsize=15)
 ax_D.grid(True)
 plt.show()
 
+fig_DT, ax_DT = plt.subplots(figsize=(6.2, 4.5))
+ax_DT.scatter(Nsteps_lst, the[2], marker='o', s=50)
+ax_DT.set_xlabel(r'$ T [a.u.] $', fontsize=15)
+ax_DT.set_ylabel(r'$ \langle D \rangle_T $', fontsize=15)
+ax_DT.grid(True)
+plt.show()
+
 
 
 
