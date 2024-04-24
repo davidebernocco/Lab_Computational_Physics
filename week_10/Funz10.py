@@ -155,15 +155,13 @@ def MC_iteration(Lo, Lv, Np, Nmc, equilibration, block_size):
 @njit
 def block_average(lst, s):
     
-    sigma = np.zeros(s, dtype = np.float32)
     aver =  np.zeros(s, dtype = np.float32)
     block_size = int(len(lst) / s)
 
     for k in range(s):
-        sigma[k] = np.std(lst[(k * block_size):((k + 1) * block_size)])
         aver[k] = np.mean(lst[(k * block_size):((k + 1) * block_size)])
         
-    Sigma_s = np.std(sigma)
+    Sigma_s = np.std(aver)
     Aver_tot = np.mean(aver)
         
     return Aver_tot, Sigma_s / math.sqrt(s)
