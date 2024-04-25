@@ -100,7 +100,7 @@ for i in [0.03, 0.1, 0.2, 0.3, 0.5, 0.7]:
     the = MC_iteration(L, L, int(i*L**2), MCsteps, True, 10**3)
     
     ax_dR2.scatter(Nsteps_lst, the[0], marker='o', s=50, label=r'$ \rho = {} $'.format(i))
-    ax_D.scatter(Nsteps_lst, the[1], marker='o', s=50)
+    ax_D.scatter(Nsteps_lst, the[1], marker='o', s=50, label=r'$ \rho = {} $'.format(i))
     
 ax_dR2.set_xlabel(r'$ t [a.u.] $', fontsize=15)
 ax_dR2.set_ylabel(r'$ \langle \Delta R^2(t) \rangle $', fontsize=15)
@@ -158,14 +158,21 @@ pilato = aver_DT(20, 80, 150, 15, 100)
 # --------------------
 #  Fluctuations of D = <D(t)> at rho = cost as L is increased
 
-lst_L = np.arange(20, 110, 20)
+lst_L = np.arange(20, 110, 5)
 
-barabba = sD_N(lst_L, 0.03, 150, 15)
+barabba = sD_N(lst_L, 0.2, (lst_L/2)**2, lst_L/10)
+
+log_N = np.log((lst_L**2)*0.03)
+log_fluct = np.log(barabba)
+
+parDN, covDN = curve_fit(line, log_N, log_fluct)
+a_DN, b_DN = parDN
 
 fig_fluct, ax_fluct = plt.subplots(figsize=(6.2, 4.5))
-ax_fluct.scatter(lst_L, barabba, marker='o', s=50, label='Block fluctuations')
-ax_fluct.set_xlabel(r'$ L $', fontsize=15)
-ax_fluct.set_ylabel(r'$ \sigma_D $', fontsize=15)
+ax_fluct.scatter(log_N, log_fluct, marker='o', s=50, label='Block fluctuations')
+ax_fluct.plot(log_N, line(log_N, a_DN, b_DN),  label='Fit curve', color='red')
+ax_fluct.set_xlabel(r'$log( N_p) $', fontsize=15)
+ax_fluct.set_ylabel(r'$ log(\sigma_D) $', fontsize=15)
 ax_fluct.grid(True)
 ax_fluct.legend()
 plt.show()

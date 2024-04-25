@@ -25,96 +25,59 @@ def random_gas_lattice(Lo, Lv, Np):
         lattice_dictionary[k] = (i, j)
         
     return lattice, lattice_dictionary
-        
 
 
-# Try to move Np particles WITHOUT REPETITIONS
-def trial_move(lattice, dictionary, Np, delta_R):
+
+
+def trial_move(lattice, dictionary, Np, delta_R, particles, directions):
     Lo, Lv = lattice.shape
-    directions = np.arange(1, 5)
-    particles = [i for i in range(1, Np +1)]
-    
-    for k in range(Np):
-        p = random.sample(particles, 1)[0]
-        trial = random.choice(directions)
-        i,j = dictionary[p]
-        
-        if trial == 1 and lattice[(i+1)%Lo, j] == 0:
-            lattice[i, j] = 0
-            lattice[(i+1)%Lo, j] = p
-            dictionary[p] = ((i+1)%Lo, j)
-            delta_R[k][1] += 1
-        elif trial == 2 and lattice[i,(j+1)%Lv] == 0:
-            lattice[i, j] = 0
-            lattice[i,(j+1)%Lv] = p
-            dictionary[p] = (i, (j+1)%Lv)
-            delta_R[k][0] += 1
-        elif trial == 3 and lattice[(i-1)%Lo, j] == 0:
-            lattice[i, j] = 0
-            lattice[(i-1)%Lo, j] = p
-            dictionary[p] = ((i-1)%Lo, j)
-            delta_R[k][1] -= 1
-        elif trial == 4 and lattice[i,(j-1)%Lv]  == 0:
-            lattice[i, j] = 0
-            lattice[i,(j-1)%Lv] = p
-            dictionary[p] = (i, (j-1)%Lv)
-            delta_R[k][0] -= 1
-        else:
-            delta_R[k][0] += 0
-            delta_R[k][1] += 0
-
-    return lattice, dictionary, delta_R
-            
-
-
-# Try to move Np particles, with POSSIBILITY OF REPETITION
-def trial_move_rep(lattice, dictionary, Np, delta_R):
-    Lo, Lv = lattice.shape
-    directions = np.arange(1, 5)
-    particles = [i for i in range(1, Np +1)]
     
     for k in range(Np):
         p = random.choice(particles)
         trial = random.choice(directions)
-        i,j = dictionary[p]
+        i, j = dictionary[p]
         
-        if trial == 1 and lattice[(i+1)%Lo, j] == 0:
-            lattice[i, j] = 0
-            lattice[(i+1)%Lo, j] = p
-            dictionary[p] = ((i+1)%Lo, j)
-            delta_R[k][1] += 1
-        elif trial == 2 and lattice[i,(j+1)%Lv] == 0:
-            lattice[i, j] = 0
-            lattice[i,(j+1)%Lv] = p
-            dictionary[p] = (i, (j+1)%Lv)
-            delta_R[k][0] += 1
-        elif trial == 3 and lattice[(i-1)%Lo, j] == 0:
-            lattice[i, j] = 0
-            lattice[(i-1)%Lo, j] = p
-            dictionary[p] = ((i-1)%Lo, j)
-            delta_R[k][1] -= 1
-        elif trial == 4 and lattice[i,(j-1)%Lv]  == 0:
-            lattice[i, j] = 0
-            lattice[i,(j-1)%Lv] = p
-            dictionary[p] = (i, (j-1)%Lv)
-            delta_R[k][0] -= 1
-        else:
-            delta_R[k][0] += 0
-            delta_R[k][1] += 0
+        if trial == 1:
+            new_i = (i + 1) % Lo
+            if lattice[new_i, j] == 0:
+                lattice[i, j] = 0
+                lattice[new_i, j] = p
+                dictionary[p] = (new_i, j)
+                delta_R[k][1] += 1
+        elif trial == 2:
+            new_j = (j + 1) % Lv
+            if lattice[i, new_j] == 0:
+                lattice[i, j] = 0
+                lattice[i, new_j] = p
+                dictionary[p] = (i, new_j)
+                delta_R[k][0] += 1
+        elif trial == 3:
+            new_i = (i - 1) % Lo
+            if lattice[new_i, j] == 0:
+                lattice[i, j] = 0
+                lattice[new_i, j] = p
+                dictionary[p] = (new_i, j)
+                delta_R[k][1] -= 1
+        elif trial == 4:
+            new_j = (j - 1) % Lv
+            if lattice[i, new_j] == 0:
+                lattice[i, j] = 0
+                lattice[i, new_j] = p
+                dictionary[p] = (i, new_j)
+                delta_R[k][0] -= 1
 
     return lattice, dictionary, delta_R
 
 
-
 # Perform an equilibration sequence before data are effectively collected           
-def equil_sequence(Np, block_size, latt, latt_dict, dR):
+def equil_sequence(Np, block_size, latt, latt_dict, dR, particles, directions):
     dm = 1
     m0 = 0
     ns = 0
     while dm > 10**(-3):
         d_acc = 0
         for k in range(block_size):
-            latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
+            latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR, particles, directions)
             dR2 = dR**2
             dr2 = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
             d_acc += dr2 / (4*(k+1+(ns*block_size)))
@@ -122,7 +85,7 @@ def equil_sequence(Np, block_size, latt, latt_dict, dR):
         dm = abs(m1 - m0)
         m0 = m1
         ns += 1
-    print(ns)
+    #print(ns)
     dR = np.zeros((Np, 2))
     
     return dR, latt, latt_dict
@@ -137,12 +100,14 @@ def MC_iteration(Lo, Lv, Np, Nmc, equilibration, block_size):
     DT = np.zeros(Nmc)
     
     latt, latt_dict = random_gas_lattice(Lo, Lv, Np)
+    particles = list(range(1, Np + 1))
+    directions = np.arange(1, 5)
     
     if equilibration:
-        dR, latt, latt_dict = equil_sequence(Np, block_size, latt, latt_dict, dR)      
+        dR, latt, latt_dict = equil_sequence(Np, block_size, latt, latt_dict, dR, particles, directions)      
     
     for i in range(Nmc):
-        latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR)
+        latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR, particles, directions)
         dR2 = dR**2
         DR2_aver[i] = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
         D[i] = DR2_aver[i] / ((i+1))
@@ -202,8 +167,8 @@ def sD_N(L, r, Nmc, s):
     
     for i in range(len(L)):
         Np = int(r * L[i]**2)
-        Dt = MC_iteration(L[i], L[i], Np, Nmc, True, 10**3)[1]
-        D, sD = block_average(Dt, s)
+        Dt = MC_iteration(L[i], L[i], Np,int(Nmc[i]), True, 10**3)[1]
+        D, sD = block_average(Dt, int(s[i]))
         sD_arr[i] = sD
         
     return sD_arr
@@ -224,7 +189,7 @@ def D_vs_rho(L, r, Nmc, s, Naver):
 
 
 def line(x, a, b):
-    return a*x + b
+    return a + b*x
 
 
 
@@ -275,6 +240,4 @@ def simulated_annealing(N, x0, T0, Tfact):
     func_min = np.asarray(func_min, dtype=np.float32)
    
     return temp, minimum, func_min
-
-
 
