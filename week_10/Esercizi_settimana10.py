@@ -1,4 +1,5 @@
 """
+Plots and other numerical estimations (10th week)
 
 @author: david
 """
@@ -53,7 +54,7 @@ plt.show()
 
 
 # -----------------------
-# Plot D(t) for a couple of values of L
+# The same as before, but:
 # => A piece of code has been put indide the algorithm to remove equilibration!
 # (Valid from now on)
 
@@ -212,13 +213,15 @@ plt.show()
 # -----------------------------------------------------------------------------
 # SIMULATED ANNEALING
 # -----------------------------------------------------------------------------
-                 
+# (Not on the weekly report!) 
+          
 data_ann = simulated_annealing(10**4, 1,10,0.9)
-x_list = np.arange(-1.5, 1.5, 10**3)
+x_list = np.arange(-1.5, 1.5, 10**(-3))
 
 fig_min, ax_min = plt.subplots(figsize=(6.2, 4.5))
-ax_min.scatter(data_ann[1], data_ann[2], marker='o', s=50, label='Local minima')
 ax_min.plot(x_list, function(x_list), label='Analytic function')
+ax_min.scatter(data_ann[1], data_ann[2], marker='o', s=50, label='Local minima', color='black')
+ax_min.scatter(data_ann[1][-1], data_ann[2][-1], marker='*', s=70, color='red', label='Estimated global minimum')
 ax_min.set_xlabel(r'$ x $', fontsize=15)
 ax_min.set_ylabel(r'$ f(x) $', fontsize=15)
 ax_min.grid(True)
@@ -226,7 +229,9 @@ ax_min.legend()
 plt.show()
 
 
-
+# Would be interesting generating randomly x0 with different seeds in order
+# to understand how slowly we have to anneal to settle down in the (proximity of)
+# the global minimum over a certain percentage suc as 90%.
 
 
 

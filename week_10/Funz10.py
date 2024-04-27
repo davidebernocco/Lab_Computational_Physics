@@ -1,5 +1,5 @@
 """
-Library of self-made functions needed for the codes implemented for the exercises of the 10th week
+Library of self-made functions needed the 10th week exercises
 
 @author: david
 """
@@ -11,6 +11,14 @@ import math
 
 
 
+# -----------------------------------------------------------------------------
+# LATTICE GAS MODEL
+# -----------------------------------------------------------------------------
+
+
+
+
+# (randomly) initializes particles positions on square lattice
 def random_gas_lattice(Lo, Lv, Np):
     lattice = np.zeros((Lo, Lv), dtype=int)
     lattice_dictionary = {}
@@ -29,6 +37,10 @@ def random_gas_lattice(Lo, Lv, Np):
 
 
 
+
+# Implement one step of the lattice gas dynamics for all the particles
+# and output the new configuration alongside the <dR^2(t)>.
+# Dictionary used to store labelled particle positions on lattice.
 def trial_move(lattice, dictionary, Np, delta_R, particles, directions):
     Lo, Lv = lattice.shape
     
@@ -69,30 +81,41 @@ def trial_move(lattice, dictionary, Np, delta_R, particles, directions):
     return lattice, dictionary, delta_R
 
 
-# Perform an equilibration sequence before data are effectively collected           
+
+
+
+# Perform an equilibration sequence before data are effectively collected.
+# It looks at absolute difference between block-averaged means: until it is
+# less than the treshold 10^(-3) it keeps discarding points.          
 def equil_sequence(Np, block_size, latt, latt_dict, dR, particles, directions):
     dm = 1
     m0 = 0
     ns = 0
+    
     while dm > 10**(-3):
         d_acc = 0
+        
         for k in range(block_size):
             latt, latt_dict, dR = trial_move(latt, latt_dict, Np, dR, particles, directions)
             dR2 = dR**2
             dr2 = np.sum(np.mean(dR2, axis=0) - np.mean(dR, axis=0)**2)
             d_acc += dr2 / (4*(k+1+(ns*block_size)))
+            
         m1 = d_acc / block_size
         dm = abs(m1 - m0)
         m0 = m1
         ns += 1
-    #print(ns)
+        
     dR = np.zeros((Np, 2))
     
     return dR, latt, latt_dict
          
   
+   
+  
 
-# Main part of the code: data are collected for Nmc steps          
+# Main part of the code: after the equilibration sequence has been removed,
+# <dR^2(t)> and D(t) are collected for a total of Nmc steps .         
 def MC_iteration(Lo, Lv, Np, Nmc, equilibration, block_size):
     dR = np.zeros((Np, 2))
     DR2_aver = np.zeros(Nmc)
@@ -117,6 +140,9 @@ def MC_iteration(Lo, Lv, Np, Nmc, equilibration, block_size):
 
 
 
+
+
+# Perform mean and stdv of a given array through block-averages
 @njit
 def block_average(lst, s):
     
@@ -133,6 +159,9 @@ def block_average(lst, s):
 
 
 
+
+
+# It simply returns the sub-mean and sub-stdv for each block
 def block(lst, s):
 
     sigma = np.zeros(s, dtype = np.float32)
@@ -147,6 +176,10 @@ def block(lst, s):
 
 
 
+
+
+# Estimates the autodiffusion coefficient D as an average over the values 
+# obtained through block-averages from single runs
 def aver_DT(L, Np, Nmc, s, Naver):
     D_aver = 0
     sD_aver = 0
@@ -162,12 +195,14 @@ def aver_DT(L, Np, Nmc, s, Naver):
 
 
 
+
+# Returns fluctuations (sigma_D) for single runs with increasing size L (rho cost)
 def sD_N(L, r, Nmc, s):
     sD_arr = np.zeros(len(L))
     
     for i in range(len(L)):
         Np = int(r * L[i]**2)
-        Dt = MC_iteration(L[i], L[i], Np,int(Nmc[i]), True, 10**3)[1]
+        Dt = MC_iteration(L[i], L[i], Np, int(Nmc[i]), True, 10**3)[1]
         D, sD = block_average(Dt, int(s[i]))
         sD_arr[i] = sD
         
@@ -176,9 +211,12 @@ def sD_N(L, r, Nmc, s):
 
 
 
+
+# Returns D averaged on multiple runs for different rho (L cost)
 def D_vs_rho(L, r, Nmc, s, Naver):
     D_arr = np.zeros(len(r))
     sD_arr = np.zeros(len(r))
+    
     for i in range(len(r)):
         Np = int(r[i] * L**2)
         D_arr[i], sD_arr[i] = aver_DT(L, Np, Nmc, s, Naver)
@@ -188,8 +226,11 @@ def D_vs_rho(L, r, Nmc, s, Naver):
 
 
 
+# Linear function used for fit
 def line(x, a, b):
     return a + b*x
+
+
 
 
 
@@ -198,11 +239,24 @@ def line(x, a, b):
 # -----------------------------------------------------------------------------
 
 
+
+
+# Function to be minimized (this one has multiple local minima)
 def function(x):
     return (x + 0.2) * x + np.cos(14.5 * x - 0.3)
 
 
 
+
+
+# Main code: starting from x0, with a Metropolis-like algorithm new points are
+# proposed and tested using Boltzmann function with a certain T. Every time
+# f(x_new) < f(x_local_minimum) x_new is updated as local minimum: the procedure
+# goes on for N steps, at the end of which T is decreased and the whole algorithm
+# is iterated until a certain T_threshold is reached. The last saved value of 
+# x is considered the best estimation of function minimum.
+# (In generating x_new an extra factor sqrt(T) has been added to the usual 
+# random uniform pick in order to make the code more efficient)
 def simulated_annealing(N, x0, T0, Tfact):
     x = x0
     fx = function(x0)
@@ -215,8 +269,6 @@ def simulated_annealing(N, x0, T0, Tfact):
     while(T > 10**(-5)):
         
         for _ in range(N):
-            
-            # Possible scaling factor within x_new
             x_new = x + np.sqrt(T)*np.random.uniform(-0.5, 0.5)
             fx_new = function(x_new)
             boltzmann = np.exp(- (fx_new - fx) / T)
