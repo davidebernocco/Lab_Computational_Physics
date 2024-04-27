@@ -1,5 +1,5 @@
 """
-Library of self-made functions needed for the codes implemented for the exercises of the 9th week
+Library of self-made functions needed for the 9th week exercises
 
 @author: david 
 """
@@ -13,43 +13,73 @@ import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 import matplotlib.colors as mcolors
 from matplotlib.animation import PillowWriter
-from PIL import Image, ImageSequence
+from PIL import ImageSequence
 import os
 
 
 
+# -----------------------------------------------------------------------------
+# MAIN FUNCTIONS FOR ISING MODEL (only NN interactions!)
+# -----------------------------------------------------------------------------
 
+
+
+# (randomly) initializes spin orientations on square lattice
 def random_spin_lattice(N, M):
     return np.random.choice([-1,1], size=(N,M))
 
 
+
+
+
+# Alternative initialization: spin oriented in a chessboard configuration
 def ordered_spin_lattice(N, M):
     lattice = np.zeros((N, M))
+    
     for i in range(N):
+        
         for j in range(M):
+            
             if (i+j)%2 == 0:
                 lattice[i,j] = 1
             else:
-                lattice[i,j] = -1   
+                lattice[i,j] = -1  
+                
     return lattice
 
 
+
+
+
+# Displays instantaneous spins configuration (the microstate)
 def display_spin_lattice(lattice):
     return Image.fromarray(np.uint8((lattice + 1) * 0.5 * 255))
 
 
+
+
+
+# Evaluates the initial configuaration lattice energy (PBC implemented)
 @njit
 def initial_energy(s):
     N, M = s.shape
     total = 0
+    
     for i in range(N):
+        
         for j in range(M):
+            
             total += -s[i, j] * (s[(i-1)%N, j] + s[i, (j+1)%M])   
+            
     return total
 
             
 
 
+
+# Randomly picks one lattice site and perform Metroplois-like algorithm to
+# decide, looking at the Delta(E), whether the spin orientation can be changed or not.
+# (PBC implemented)
 @njit
 def Ising_conditions(s, beta):
     N, M = s.shape
@@ -74,10 +104,16 @@ def Ising_conditions(s, beta):
 
 
 
+
+# After a first burn-in sequence during which the system is supposed to equilibrate
+# (and thus data are not collected), the "Ising_conditions" function is called
+# Nmc times: energy and magnetization arrays are built.
+# An additional piece of code has been added at the end to print, when needed,
+# the last lattice configuration generated.
 def accumulation(No, Nv, beta, eqSteps, mcSteps):
     L = No * Nv
-    #config = random_spin_lattice(No, Nv)   #Starting random configuration
-    config = ordered_spin_lattice(No, Nv)   #Starting chessboard configuration
+    config = random_spin_lattice(No, Nv)   #Starting random configuration
+    #config = ordered_spin_lattice(No, Nv)   #Starting chessboard configuration
     
     for i in range(eqSteps):
         config = Ising_conditions(config, beta)[0]
@@ -121,8 +157,11 @@ def accumulation(No, Nv, beta, eqSteps, mcSteps):
 
 
 # -----------------------------------------------------------------------------
-# OPEN BOUNDARY CONDITIONS 
-# -----------------------------------------------------------------------------
+# OPEN BOUNDARY CONDITIONS
+
+ 
+
+# Evaluates the initial configuaration lattice energy (OBC implemented)
 @njit
 def initial_energy_open(s):
     N, M = s.shape
@@ -141,6 +180,9 @@ def initial_energy_open(s):
 
 
 
+
+
+# The same as "Ising_conditions", but with OBC implemented
 @njit
 def Ising_conditions_open(s, beta):
     N, M = s.shape
@@ -181,6 +223,9 @@ def Ising_conditions_open(s, beta):
 
 
 
+
+
+# The same as "accumulation", but with "Ising_conditions_open"
 def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
     L = No * Nv
     config = random_spin_lattice(No, Nv)   #Starting random configuration
@@ -207,8 +252,7 @@ def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
             E2[j] = Ener * Ener
             M[j] = Mag
             M2[j] = Mag * Mag
-            j += 1
-            
+            j += 1  
     
     # Display the last lattice configuration
     """
@@ -230,9 +274,10 @@ def accumulation_open(No, Nv, beta, eqSteps, mcSteps):
 
 # ----------------------------------------------------------------------------
 # CONFIGURATION SEQUENCE ANIMATION
-# ----------------------------------------------------------------------------
 
 
+
+# Real time animation for lattice spins evolution
 def animation_Ising(No, Nv, beta, mcSteps, plot_name):
     L = No * Nv
     config = random_spin_lattice(No, Nv)   #Starting random configuration
@@ -261,6 +306,9 @@ def animation_Ising(No, Nv, beta, mcSteps, plot_name):
 
 
 
+
+# Saves the gif frame by frame in single png images, so that the animation can
+# be easily shown on LateX
 def save_frames_from_gif(gif_path, output_folder):
    
     # Open the GIF file
@@ -274,11 +322,14 @@ def save_frames_from_gif(gif_path, output_folder):
 
 
 
-# -----------------------------------------------------------------------------
-# PLOTTING PHYSICAL QUANTITIES: <|M|>/N, <E>/N, X/N, Cv/N
-# -----------------------------------------------------------------------------
 
 
+# -----------------------------------------------------------------------------
+# STUDYING PHYSICAL QUANTITIES: <|M|>/N, <E>/N, X/N, Cv/N
+
+
+
+# Gives the stdv of a list through block-average method
 @njit
 def block_average(lst, s):
     
@@ -294,6 +345,9 @@ def block_average(lst, s):
 
 
 
+
+
+# Output averages of quantities collected in "accumulation" and calculates C, X
 def averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps):
     E_aver = np.mean(data[2])
     M_ABS_aver = np.mean(abs(data[0]))
@@ -304,6 +358,8 @@ def averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps):
 
 
 
+
+# Calculates numerical errors on the averaged quantities through block-average method
 def average_error(data, No, Nv, beta, eqSteps, mcSteps, s):
     aver = averaged_quantities(data, No, Nv, beta, eqSteps, mcSteps)
     err_E = block_average(data[2],s)
@@ -317,6 +373,9 @@ def average_error(data, No, Nv, beta, eqSteps, mcSteps, s):
     
 
 
+
+
+# Collect physical quantities with their uncertainities for different temperatures
 def T_variation(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
     N = No * Nv
     arrT = np.arange(T_m, T_M, d_T)
@@ -335,6 +394,8 @@ def T_variation(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
 
 
 
+
+# The same as "T_variation" but with OBC implemented
 def T_variation_open(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
     N = No * Nv
     arrT = np.arange(T_m, T_M, d_T)
@@ -353,6 +414,8 @@ def T_variation_open(No, Nv, T_m, T_M, d_T, eqSteps, mcSteps, s):
 
 
 
+
+# Provides an alternative way to evaluate the specific heat, through derivative
 @njit
 def c_as_derivative(No, Nv, e, dT, s_e):
     N = No*Nv
@@ -360,13 +423,18 @@ def c_as_derivative(No, Nv, e, dT, s_e):
     s_c = np.zeros(len(e) - 2)
     E = e * N
     s_E = s_e *N
+    
     for i in range(1, len(e) - 1):
         c[i-1] = (E[i+1] - E[i-1]) / (2*dT)
         s_c[i-1] = math.sqrt(s_E[i+1]**2 + s_E[i-1]**2) / (2*dT)
+        
     return c/N, s_c/N
 
 
 
+
+
+# Sigmoid function used for fit
 def fitE(x, L, k, x0, c):
     return L / (1 + np.exp(-k * (x - x0))) + c
 
