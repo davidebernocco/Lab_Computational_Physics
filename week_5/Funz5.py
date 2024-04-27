@@ -1,5 +1,5 @@
 """
-Library of self-made functions needed for the codes implemented for the exercises of the 5th week
+Library of self-made functions needed for the 5th week exercises
 
 @author: david
 """
@@ -11,6 +11,13 @@ import math
 
 
 
+# -----------------------------------------------------------------------------
+# NUMERICAL INTEGRATION IN 1D: DETERMINISTIC METHODS (equispaced points)
+# -----------------------------------------------------------------------------
+
+
+
+# Deterministic Trapezoidal method for numerical integration
 @njit
 def int_trap(num, I):
     
@@ -33,8 +40,11 @@ def int_trap(num, I):
 
 
 
+
+# Deterministic Simpson method for numerical integration
+# Unlike the "trpazoidal method" here the number of sub intervals must be even 
 @njit
-def int_Simpson(num, I): # N.B. Unlike the "trpazoidal method" here the number of sub intervals must be even (2^n is ok)!
+def int_Simpson(num, I): 
     
     results = np.zeros(len(num), dtype = np.float32)
     Delta = np.zeros(len(num), dtype = np.float32)
@@ -56,6 +66,22 @@ def int_Simpson(num, I): # N.B. Unlike the "trpazoidal method" here the number o
 
 
 
+# Linear function for fit
+@jit
+def line(x, m, q):
+    
+    return m*x + q
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# MONTE CARLO METHODS: "GENERIC SAMPLE MEAN" AND "IMPORTANCE SAMPLING"
+# -----------------------------------------------------------------------------
+
+
+# Function to be integrated
 @njit
 def funz_exp(x):
     
@@ -64,6 +90,10 @@ def funz_exp(x):
 
 
 
+
+# Stochastic easiest method form numerical integration.
+# It is based on the fundamental theorem of calculus: the integral of f(x) over
+# the interval [a,b] is equivalent to (b-a)*<f(x)>.
 @njit
 def int_sample_mean(num, func, condition, I):
     
@@ -79,15 +109,14 @@ def int_sample_mean(num, func, condition, I):
         somma_2 = 0
     
         for i in range(len(x)):
-            somma += func(x[i])  #(math.e ** (-x[i] ** 2) )
-            somma_2 += func(x[i])**2 #(math.e ** (-x[i] ** 2) ) ** 2
+            somma += func(x[i])  
+            somma_2 += func(x[i])**2
         
         results[j] = somma/num[j]
         results_2[j] = somma_2/num[j]
         Sigma_n[j] = math.sqrt(somma_2/num[j] - (somma/num[j])**2)
         Sigma_n_su_radq_n[j] = Sigma_n[j] / math.sqrt(num[j])
         
-    
         if condition:
             Actual_err[j] = np.abs( results[j] - I )
         
@@ -96,8 +125,14 @@ def int_sample_mean(num, func, condition, I):
 
 
 
+
+
+# Sthocastic method similar to the previous one, but here the points are 
+# generated according a known distribution p(x). If p(x) is set to be normalized 
+#to 1 in [a,b], then the integral is well approximated by:
+# 1/N * Sum_{1}^{N}(f(x_i)/p(x_i))
 @njit
-def int_importance_sampl(num):
+def int_importance_sampl(func, num):
     
     results = np.zeros(len(num), dtype = np.float32)
     results_2 = np.zeros(len(num), dtype = np.float32)
@@ -111,8 +146,8 @@ def int_importance_sampl(num):
         somma_2 = 0
     
         for i in range(len(x)):
-            somma += (math.e ** (-x[i] ** 2) ) / ( (math.e/(math.e - 1)) * (math.e ** (-x[i])))
-            somma_2 += (math.e ** (-x[i] ** 2) / ( (math.e/(math.e - 1)) * (math.e ** (-x[i])))) ** 2
+            somma += ( func(x[i]) ) / ( (math.e/(math.e - 1)) * (math.e ** (-x[i])))
+            somma_2 += ( func(x[i]) / ( (math.e/(math.e - 1)) * (math.e ** (-x[i])))) ** 2
         
         results[j] = somma/num[j]
         results_2[j] = somma_2/num[j]
@@ -124,6 +159,13 @@ def int_importance_sampl(num):
 
 
 
+
+# -----------------------------------------------------------------------------
+# MONTE CARLO METHOD: "ACCEPTANCE-REJECTION"
+# -----------------------------------------------------------------------------
+
+
+# Function to be integrated
 @njit
 def f_quarterPi(x):
     
@@ -132,14 +174,8 @@ def f_quarterPi(x):
 
 
 
-@jit
-def line(x, m, q):
-    
-    return m*x + q
 
-
-
-
+# Acceptance-rejection method for numerical integration
 @njit
 def int_acc_rejec(num, N_rep):
     
@@ -167,6 +203,14 @@ def int_acc_rejec(num, N_rep):
 
 
 
+
+# -----------------------------------------------------------------------------
+# MONTE CARLO METHOD: ERROR ANALYSIS WITH "AVERAGE OF THE AVERAGES" AND "BLOCK-AVERAGE"
+# -----------------------------------------------------------------------------
+
+
+
+# Implement the average of multiple averages
 def average_of_averages(num, m, func):
     
     aver = 0
@@ -189,6 +233,8 @@ def average_of_averages(num, m, func):
 
 
 
+
+# Implement the block-average 
 def block_average(num, s, func):
     
     aver = np.zeros(s, dtype = np.float32)
@@ -210,3 +256,4 @@ def block_average(num, s, func):
     Sigma_s = math.sqrt( np.mean(aver_2) - (np.mean(aver))**2 )      
         
     return aver, Sigma_s / math.sqrt(s)
+
