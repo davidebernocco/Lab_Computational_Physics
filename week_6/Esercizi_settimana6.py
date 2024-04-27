@@ -1,5 +1,5 @@
 """
-Now I have to do everything from the beginning again
+Plots and other numerical estimations (6th week)
 
 @author: david
 """
@@ -10,55 +10,63 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import norm, cauchy
 
-#-- ES 1 --
-#---------- 1D integration: "Gauss - Legendre quadrature"
 
 
-# ---- 1.1) A first simple example
-"""
+# -----------------------------------------------------------------------------
+# GAUSS-LEGENDRE QUADRATURE: NUMERICAL INTEGRATION
+# -----------------------------------------------------------------------------
+
+
+# 1.1) A first simple example of numerical integration with GL method.
+# it provides the actual error
+
 xi = 0
 xf = 1
 poly_deg = 2
 
-Bach = int_GaussLeg(integranda, xi, xf, poly_deg, False, 0)
+Bach = int_GaussLeg(integranda, xi, xf, [poly_deg], False, 0)
 
 print(f'Actual error between the known analythic results of the integral and the numerical integration with Gauss Legendre at order {poly_deg}:', abs(Bach[0] - (math.e - 1)))
-"""
 
 
-# ---- 1.2) "Trapezoidal", "Simpson" and "Gauss - Legendre quadrature" comparison
-"""
-n_list = np.asarray( [2 ** k for k in range(1, 11)], dtype=np.int32 )
+
+
+
+# 1.2) "Trapezoidal", "Simpson" and "Gauss - Legendre quadrature" comparison.
+
+n_list = np.asarray( [2*k for k in range(1, 32)], dtype=np.int32 )
+n_list2 = np.asarray( [k for k in range(1, 65)], dtype=np.int32 )
 
 
 Rossini = int_trap(integranda, 0, 1, n_list, True, math.e -1)
 Doninzetti = int_Simpson(integranda, 0, 1, n_list, True,   math.e -1)
-Bellini = int_GaussLeg(integranda, 0, 1, n_list, True, math.e -1)
+Bellini = int_GaussLeg(integranda, 0, 1, n_list2, True, math.e -1)
 
-plt.scatter(np.log(n_list), np.log(Rossini[1]), label='Trapezoidal method', marker='s', s=50)
-plt.scatter(np.log(n_list), np.log(Doninzetti[1]), label='Simpson method', marker='o', s=50)
-plt.scatter(np.log(n_list), np.log(Bellini[1]), label='Gauss Legendre quadrature', marker='^', s=50)
+plt.scatter(np.log(n_list), np.log(Rossini[1]), label='Trapezoidal', marker='s', s=50)
+plt.scatter(np.log(n_list), np.log(Doninzetti[1]), label='Simpson', marker='o', s=50)
+plt.scatter(np.log(n_list2), np.log(Bellini[1]), label='Gauss-Leg.', marker='^', s=50)
 plt.xlabel('log(n)', fontsize=12)
 plt.ylabel(r'$ \log(\Delta_{n}) $', fontsize=12)
-plt.legend(loc='upper right')
+plt.legend(loc='lower left')
 plt.grid(True)
 plt.show()
-"""
 
 
 
 
-#-- ES 2 --
-#---------- Random numbers with gaussian distribution: the CENTRAL LIMIT THEOREM
+
+# -----------------------------------------------------------------------------
+# RANDOM NUMBERS WITH GAUSSIAN DISTRIBUTION: THE CENTRAL LIMIT THEOREM
+# -----------------------------------------------------------------------------
 
 
-# ---- 2.1), 2.2), 2.3)  Central Limit Theorem from UNIFORM DISTRIBUTION
-
+# 2.1), 2.2), 2.3)  Verifies, as predicted by the Central Limit Theorem (CLT),
+# that taking a large number of averages from uniform distributions reproduces
+# a gaussian distribution
 
 Num = 500
-num = 1000
+num = 10000
 
-"""
 Beethoven = clt_distr( unif_distr, -1, 1, Num, num)
 
 print('\n', 'Numerical average of the averages: ', Beethoven[2])
@@ -78,14 +86,13 @@ density = hist / (num * bin_widths[0])
 
 plt.bar(bins[:-1], density, width=bin_widths, alpha=0.5, color='b', label=r'$PDF^{num}$')
 
-plt.xlabel('x', fontsize=12)
+plt.xlabel(r'$\bar{X}$', fontsize=12)
 plt.ylabel('Probability density', fontsize=12)
 plt.grid(True)
 
-
 x = np.linspace(min(Beethoven[0]), max(Beethoven[0]), 1000)
-y = norm.pdf(x, Beethoven[2], Beethoven[3])
-plt.plot(x, y, label=r'$Gaussian$', color='black')
+y = norm.pdf(x, 0, (1 / math.sqrt(3))/math.sqrt(Num))
+plt.plot(x, y, label=r'$PDF^{theo}$', color='black')
 plt.legend()
 
 plt.show()
@@ -93,10 +100,10 @@ plt.show()
 
 
 
-# ---- 2.4)  Central Limit Theorem from EXPONENTIAL DISTRIBUTION
+
+# 2.4)  The same as before, but taking the averages from exponential distributions
 
 Chopin = clt_distr( exp_distr, 0, 1, Num, num)
-
 
 print('\n', 'Numerical average of the averages: ', Chopin[2])
 print('\n', 'Expected mu value: ', 1 )
@@ -115,28 +122,33 @@ densitye = histe / (num * bin_widthse[0])
 
 plt.bar(binse[:-1], densitye, width=bin_widthse, alpha=0.5, color='b', label=r'$PDF^{num}$')
 
-plt.xlabel('x', fontsize=12)
+plt.xlabel(r'$\bar{X}$', fontsize=12)
 plt.ylabel('Probability density', fontsize=12)
 plt.grid(True)
 
-
 x = np.linspace(min(Chopin[0]), max(Chopin[0]), 1000)
-y = norm.pdf(x, Chopin[2], Chopin[3])
-plt.plot(x, y, label=r'$Gaussian$', color='black')
+y = norm.pdf(x, 1, 1 / math.sqrt(Num))
+plt.plot(x, y, label=r'$PDF^{theo}$', color='black')
 plt.legend()
 
 plt.show()
 
-"""
 
-# ---- 2.5)  Central Limit Theorem from LORENTZ DISTRIBUTION
+
+
+
+# 2.5) Now from a series of Cauchy-Lorentz distributions
+# Here the CLT in his traditional formulation does not hold, since we cannot  
+# define a proper mean (1-momentum) for the distributions we start from.
 
 Debussy = clt_lorentz( -1, 1, Num, num)
 
+"""
 # More generally, if X1, X2,.., Xn are independent and Cauchy distributed with 
 # location parameters x01, x02,..., x0n and scales gamma1, gamma2,..., gamman,
 # and a1, a2,..., an are real numbers, then Sum_i(ai * Xi) is Cauchy distributed
 # with location Sum_i(ai * x0i) and scale Sum_i(|ai| * gammai)
+"""
 
 print('\n', 'Median as numerical estimationfor the central value x0: ', Debussy[2])
 print('\n', 'Expected value for x0: ', 0 )
@@ -154,31 +166,19 @@ densityd = histd / (num * bin_widthsd[0])
 
 plt.bar(binsd[:-1], densityd, width=bin_widthsd, alpha=0.5, color='b', label=r'$PDF^{num}$')
 
-plt.xlabel('x', fontsize=12)
+plt.xlabel(r'$\bar{X}$', fontsize=12)
 plt.ylabel('Probability density', fontsize=12)
 plt.grid(True)
 
-
 x = np.linspace(-40, 40, 10000)
 y = cauchy.pdf(x, loc = Debussy[2], scale = Debussy[3])
-plt.plot(x, y, label='Cauchy Lorentz', color='black')
-plt.xlim(-30, 30)
+plt.plot(x, y, label=r'$PDF^{theo}$', color='black')
+y2 = norm.pdf(x, 0, 1.3)
+plt.plot(x, y2, label='Gaussian', color='red', linestyle='dashed')
+plt.xlim(-20, 20)
 plt.legend()
 
 plt.show()
-
-
-"""
-FOR THE SAVED IMAGE, IT IS THE DISTRIBUTION OF THE VARIABLE "SAMPLE MEAN",
-WITH X0 = 0.013 AND GAMMA = 0.978
-"""
-
-
-
-
-
-
-
 
 
 

@@ -1,16 +1,21 @@
 """
-Library of self-made functions needed for the codes implemented for the exercises of the 5th week
+Library of self-made functions needed for the 6th week exercises
 
 @author: david
 """
 
 import numpy as np
-#from numba import njit
 import math
 
 
 
+# -----------------------------------------------------------------------------
+# GAUSS-LEGENDRE QUADRATURE: NUMERICAL INTEGRATION
+# -----------------------------------------------------------------------------
 
+
+
+# Function that is integrated in the first example
 def integranda(x):
     
     return math.e ** x
@@ -18,6 +23,59 @@ def integranda(x):
 
 
 
+
+# Trapezoidal method for numerical integration
+def int_trap(func, a, b, num, condition, I):
+    
+    results = np.zeros(len(num), dtype = np.float32)
+    Delta = np.zeros(len(num), dtype = np.float32)
+    
+    for j in range(len(num)):
+        xi = np.linspace(a, b, num[j] + 1)
+        h = xi[1] - xi[0]
+        somma = ( func(xi[0]) + func(xi[-1]) ) * ( 1 / 2 )
+        
+        for i in range(1, len(xi) - 1):
+            somma += func(xi[i])
+        
+        results[j] = h * somma
+        
+        if condition:
+            Delta[j] = abs(h * somma - I)
+       
+    return results, Delta
+
+
+
+
+
+# Simpson method for numerical integration
+# Unlike the "trpazoidal method" here the number of sub intervals must be even! 
+def int_Simpson(func, a, b, num, condition, I): 
+    
+    results = np.zeros(len(num), dtype = np.float32)
+    Delta = np.zeros(len(num), dtype = np.float32)
+    
+    for j in range(len(num)):
+        xi = np.linspace(a, b, num[j] + 1)
+        h = xi[1] - xi[0]
+        somma = 0
+        
+        for i in range(1, int(num[j]/2) + 1):
+            somma += func(xi[2*i - 2]) + 4 * func(xi[2*i - 1]) + func(xi[2*i])
+        
+        results[j] = (h/3) * somma
+        
+        if condition:    
+            Delta[j] = abs((h/3) * somma - I)
+    
+    return results, Delta
+
+
+
+
+
+# Gauss-Legendre algorithm for numerical integration
 def int_GaussLeg(func, a, b, num, condition, I):
     
     results = np.zeros(len(num), dtype = np.float64)
@@ -45,6 +103,12 @@ def int_GaussLeg(func, a, b, num, condition, I):
 
 
 
+# -----------------------------------------------------------------------------
+#  RANDOM NUMBERS WITH GAUSSIAN DISTRIBUTION: THE CENTRAL LIMIT THEOREM
+# -----------------------------------------------------------------------------
+
+
+# Returns N points uniformly distributed
 def unif_distr(a, b, N):
     
     return np.random.uniform(a, b, N)
@@ -52,6 +116,8 @@ def unif_distr(a, b, N):
 
 
 
+
+# Retirns N points exponentially distributed
 def exp_distr(a, b, N):
     
     x = np.random.uniform(a, b, N)
@@ -62,6 +128,8 @@ def exp_distr(a, b, N):
 
 
 
+# Builds a gaussian distribution out of averages of "well-behaved" distribution
+# (i.e. that have at least 1st-momentum defined) and outputs key quantities
 def clt_distr(func, a, b, N, n_rep):
     
     aver = np.zeros(n_rep, dtype = np.float32)
@@ -84,7 +152,9 @@ def clt_distr(func, a, b, N, n_rep):
 
 
 
-# CLT does not hold for Lorentz distribution! We use median end IQR to estimate x0 and gamma
+
+
+# CLT does not hold for Lorentz distribution! Median end IQR used to estimate x0 and gamma
 def clt_lorentz( a, b, N, n_rep): 
     
     aver = np.zeros(n_rep, dtype = np.float32)
@@ -100,55 +170,6 @@ def clt_lorentz( a, b, N, n_rep):
     medianaTot = np.median(aver)
     half_IQRTot =  0.5 * (np.percentile(aver, 75) - np.percentile(aver, 25))
     
-    
     return aver, half_IQR, medianaTot, half_IQRTot
-
-
-
-
-
-
-
-def int_trap(func, a, b, num, condition, I):
-    
-    results = np.zeros(len(num), dtype = np.float32)
-    Delta = np.zeros(len(num), dtype = np.float32)
-    
-    for j in range(len(num)):
-        xi = np.linspace(a, b, num[j] + 1)
-        h = xi[1] - xi[0]
-        somma = ( func(xi[0]) + func(xi[-1]) ) * ( 1 / 2 )
-        
-        for i in range(1, len(xi) - 1):
-            somma += func(xi[i])
-        
-        results[j] = h * somma
-        
-        if condition:
-            Delta[j] = abs(h * somma - I)
-       
-    return results, Delta
-
-def int_Simpson(func, a, b, num, condition, I): # N.B. Unlike the "trpazoidal method" here the number of sub intervals must be even (2^n is ok)!
-    
-    results = np.zeros(len(num), dtype = np.float32)
-    Delta = np.zeros(len(num), dtype = np.float32)
-    
-    for j in range(len(num)):
-        xi = np.linspace(a, b, num[j] + 1)
-        h = xi[1] - xi[0]
-        somma = 0
-        
-        for i in range(1, int(num[j]/2) + 1):
-            somma += func(xi[2*i - 2]) + 4 * func(xi[2*i - 1]) + func(xi[2*i])
-        
-        results[j] = (h/3) * somma
-        
-        if condition:    
-            Delta[j] = abs((h/3) * somma - I)
-    
-    return results, Delta
-
-
 
 
