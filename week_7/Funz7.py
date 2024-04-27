@@ -1,5 +1,5 @@
 """
-Library of self-made functions needed for the codes implemented for the exercises of the 5th week
+Library of self-made functions needed for the 7th week exercises
 
 @author: david
 """
@@ -11,34 +11,42 @@ from scipy.optimize import curve_fit
 from numba import njit
 import random
 
-    
 
-def proposal_distr(a, b): # Usually "Gaussian" or "uniform" distribution
+# -----------------------------------------------------------------------------
+# RANDOM NUMBERS WITH GAUSSIAN DISTRIBUTION: METROPOLIS MONTE CARLO ALGORITHM
+# -----------------------------------------------------------------------------
+
+
+# Proposal distribution within the Metropolis algorith.
+# Usually it is a gaussian or a uniform distribution (like here)
+def proposal_distr(a, b):
     
     return np.random.uniform(a, b, 1)
 
 
 
+
+
+# Gaussian test function 
 def gauss_func(x, mu, sigma):
     return norm.pdf(x, mu, sigma)
 
 
+
+
+
+# Metropolis code for a specific gaussian trial function. Beside the sampled
+# points, it outputs as well the acceptance ratio.
 def Metropolis( x0, delta, n, s):
     
     acc = 0
     points = np.zeros(n, dtype = np.float32)
     points[0] = x0
-    
     x_t = x0
     
     for i in range(1, n):
         x_star = np.random.uniform(x_t - delta, x_t + delta)
-        
-        esp1 = ( -x_star ** 2 / ( 2 * s ** 2) ) # To modify depending on 
-        esp2 = ( -x_t ** 2 / ( 2 * s ** 2) )    # choosen target function.
-                                                # Here the exp are broken to
-        alpha = math.e ** (esp1-esp2)           # avoid "division by 0" issue
-        
+        alpha = min(1, gauss_func(x_star, 0, s) / gauss_func(x_t, 0, s))
         
         if alpha >= np.random.rand() :
             x_t = x_star
@@ -50,6 +58,10 @@ def Metropolis( x0, delta, n, s):
 
 
 
+
+
+
+# Function that prints multiple histograms with gaussian fit and chi square
 def plot_histo(n_arr, func, s, delta):
     
     coefficients = {}
@@ -75,14 +87,12 @@ def plot_histo(n_arr, func, s, delta):
         bin_centers = (bins[:-1] + bins[1:]) / 2
         bin_widths = np.diff(bins)
         density = hist / (n_arr[i] * bin_widths[0])
-
         
         # fit
         params, covariance = curve_fit(gauss_func, bin_centers, density)
         Mu, Sigma = params
         expected_values = gauss_func(bin_centers, Mu, Sigma)
         chi_square = np.sum((density - expected_values) ** 2 / expected_values)
-        
         
         x_range = np.linspace(min(bin_centers), max(bin_centers), 1000)
         
@@ -98,7 +108,6 @@ def plot_histo(n_arr, func, s, delta):
         
         plt.show()
         
-        
         coefficients[n_arr[i]] = (params, covariance, chi_square)
     
     print(coefficients)
@@ -107,7 +116,9 @@ def plot_histo(n_arr, func, s, delta):
         
         
 
-    
+ 
+
+# Gives the acceptance ratio for different values of delta (gaussian trial function)   
 def acc_ratio(x0, n, s, d_arr):
     
     acc = np.zeros(len(d_arr), dtype = np.float32)
@@ -121,6 +132,9 @@ def acc_ratio(x0, n, s, d_arr):
 
 
 
+
+# It allows to estimate the equilibration length looking at the absolute difference
+# between (instantaneous) numerical variance and expected variance
 def equil(x0, delta, n, s, N, N_aver):
     
     l = int(n/N)
@@ -143,6 +157,11 @@ def equil(x0, delta, n, s, N, N_aver):
 
 
 
+# -----------------------------------------------------------------------------
+# SAMPLING PHYSICAL QUANTITIES: DIRECT SAMPLING AND METROPOLIS SAMPLING
+# -----------------------------------------------------------------------------
+
+# Typical Box-Muller code for gaussian sampling
 @njit
 def boxmuller(fagioli):
     
@@ -173,6 +192,10 @@ def boxmuller(fagioli):
 
 
 
+
+
+# Evaluates integrals corresponding to expectation values through a direct
+# sample mean algorithm
 @njit
 def dir_sampl_ground_state(n, s):
     
@@ -196,6 +219,9 @@ def dir_sampl_ground_state(n, s):
 
 
 
+
+# Evaluates integrals corresponding to expectation values through importance
+# sampling, where the points are generated with Metropolis algorithm
 def Metro_sampl_ground_state(n, s):
     
     x0 = 0
@@ -215,6 +241,9 @@ def Metro_sampl_ground_state(n, s):
 
 
 
+
+
+# Gives the absoulte difference between numerical value and analythical solution
 def accuracy(s, lst_n, fun):
     
     E_pot_expected = s**2 / 2
@@ -241,6 +270,13 @@ def accuracy(s, lst_n, fun):
 
 
 
+
+
+# -----------------------------------------------------------------------------
+# CORRELATIONS
+# -----------------------------------------------------------------------------
+
+# Calculates correlations over the sampled points
 @njit
 def corr(n, N_max, lst):
     
@@ -266,6 +302,16 @@ def corr(n, N_max, lst):
     return corr_arr
 
 
+
+
+
+# -----------------------------------------------------------------------------
+# VERIFICATION OF THE BOLTZMANN DISTRIBUTION
+# -----------------------------------------------------------------------------
+
+
+
+# Metropolis code for a Boltzmann trial function (single particle 1D)
 @njit
 def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
     
@@ -306,7 +352,10 @@ def Metropolis_Boltzmann( v0, dvmax, n, kb, T, m):
 
 
 
-def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m, s): #See pag 59 of "Metropolis.pdf"
+
+# Evaluates expectation values of typical physical quantities through importance
+# sampling + Metropolis (See pag 59 of "Metropolis.pdf")
+def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m, s): 
     
     sesamo = Metropolis_Boltzmann(v0, dvmax, n, kb, T, m)[0]
     v_m = np.zeros(n, dtype = np.float32)
@@ -326,6 +375,9 @@ def Metro_sampl_Boltzmann(v0, dvmax, n, kb, T, m, s): #See pag 59 of "Metropolis
 
 
 
+
+
+# stdv of sampled points with block-averages
 @njit
 def block_average(lst, s):
     
@@ -333,7 +385,7 @@ def block_average(lst, s):
     block_size = int(len(lst) / s)
 
     for k in range(s):
-        aver[k] = np.std(lst[(k * block_size):((k + 1) * block_size)])
+        aver[k] = np.mean(lst[(k * block_size):((k + 1) * block_size)])
         
     Sigma_s = np.std(aver)
         
@@ -341,6 +393,9 @@ def block_average(lst, s):
 
 
 
+
+
+# Metropolis code for a Boltzmann trial function (1D gas of N non-interacting particles)
 @njit
 def Metropolis_Boltzmann_N( v0, dvmax, n, kb, T, m, N):
     
@@ -374,7 +429,11 @@ def Metropolis_Boltzmann_N( v0, dvmax, n, kb, T, m, N):
 
 
 
-def Metro_sampl_Boltzmann_N(v0, dvmax, n, kb, T, m, N, s): #See pag 59 of "Metropolis.pdf"
+
+
+# Evaluates expectation values of typical physical quantities through importance
+# sampling + Metropolis (See pag 59 of "Metropolis.pdf")
+def Metro_sampl_Boltzmann_N(v0, dvmax, n, kb, T, m, N, s): 
     
     sesamo = Metropolis_Boltzmann_N(v0, dvmax, n, kb, T, m, N)[0].flatten()
     v_m = np.zeros((n*N), dtype = np.float32)
