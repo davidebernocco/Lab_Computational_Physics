@@ -7,8 +7,59 @@ Algorithms (less efficient) 3.1 and 3.2 for the boxmuller exercise
 import matplotlib.pyplot as plt
 import numpy as np
 import math
+import random
 import time
+from numba import jit, float64, int32
 from Funz3 import R
+
+
+# Funvtion that outputs two list of gaussian distributed variables
+@jit
+def R(u,v,n):
+    
+    x_vet = []
+    y_vet = []
+    
+    for i in range(n):
+        if u[i]**2 + v[i]**2 <= 1 :
+            r2 = u[i]**2 + v[i]**2
+            r2 = math.sqrt(-2* math.log(r2) / r2)
+            x_vet.append(r2* u[i])
+            y_vet.append(r2* v[i])
+            
+    return np.asarray(x_vet, dtype=np.float64), np.asarray(y_vet, dtype=np.float64)
+
+
+
+
+
+# The optimized function for the case 3.1; not used in the main code. Showed here merely for didactic scope
+@jit(float64[:](int32))
+def boxmuller_trig(ceci):
+    sacco = []
+    
+    for i in range(ceci):
+        gaus_stored = False
+        g = 0.0
+        
+        if gaus_stored:
+            rnd = g
+            gaus_stored = False
+        else:
+            X = random.random() 
+            Y = random.random()
+            x = math.sqrt(-2 * math.log(X)) * math.cos(2 * math.pi * Y)
+            y = math.sqrt(-2 * math.log(X)) * math.sin(2 * math.pi * Y)
+            rnd = x
+            g = y
+            gaus_stored = True
+            
+        sacco.append(rnd)   
+        
+    return np.asarray(sacco, float64)
+
+
+
 
 
 num_rand = 10**6

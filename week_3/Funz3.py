@@ -1,6 +1,6 @@
 
 """
-Library of self-made functions needed for the codes implemented for the exercises of the 3rd week
+Library of self-made functions needed for the 3rd week exercises
 
 @author: david
 """
@@ -12,25 +12,54 @@ import matplotlib.pyplot as plt
 from numba import jit, int32, float64
 
 
+
+# -----------------------------------------------------------------------------
+# RANDOM NUMBERS WITH NON-UNIFORM DISTRIBUTION: INVERSE TRANSFORMATION METHOD
+# -----------------------------------------------------------------------------
+
+
+# Linear function used in fit
 @jit
 def line(x, m, q):
     return m*x + q
 
 
 
+
+
+# -----------------------------------------------------------------------------
+# RANDOM NUMBERS WITH NON-UNIFORM DISTRIBUTION: COMPARISON BETWEEN DIFFERENT ALGORITHMS
+# -----------------------------------------------------------------------------
+
+
+# Function defined through only elementary operations, used to generate points
+# according to the U-shaped distribution
 @jit
 def var_x(U,V,n):
+    
     x = []
+    
     for i in range(n):
         if U[i]**2 + V[i]**2 <= 1 :
             x.append((U[i]**2 - V[i]**2)/(U[i]**2 + V[i]**2))
-    return x
+            
+    return np.asarray(x, dtype=np.float64)
 
 
 
+
+
+# -----------------------------------------------------------------------------
+# RANDOM NUMBERS WITH NON-UNIFORM DISTRIBUTION: BOX-MULLER ALGORITHM
+# -----------------------------------------------------------------------------
+
+
+# Box-Muller algorithm that generates a single gaussian distribution.
 @jit(float64[:](int32))
 def boxmuller(fagioli):
+    
     sacchetto = []
+    
     for i in range(fagioli):
         gaus_stored = False
         g = 0.0
@@ -50,56 +79,30 @@ def boxmuller(fagioli):
             g = y * r2
             gaus_stored = True
             
-        sacchetto.append(rnd)    
+        sacchetto.append(rnd)   
+        
     return np.asarray(sacchetto, float64)
 
 
 
-@jit
-def R(u,v,n):
-    x_vet = []
-    y_vet = []
-    for i in range(n):
-        if u[i]**2 + v[i]**2 <= 1 :
-            r2 = u[i]**2 + v[i]**2
-            r2 = math.sqrt(-2* math.log(r2) / r2)
-            x_vet.append(r2* u[i])
-            y_vet.append(r2* v[i])
-    return np.asarray(x_vet, dtype=np.float64), np.asarray(y_vet, dtype=np.float64)
 
 
-
-# The optimized function for the case 3.1; not used in the main code. Showed here merely for didactic scope
-@jit(float64[:](int32))
-def boxmuller_trig(ceci):
-    sacco = []
-    for i in range(ceci):
-        gaus_stored = False
-        g = 0.0
-        
-        if gaus_stored:
-            rnd = g
-            gaus_stored = False
-        else:
-            X = random.random() 
-            Y = random.random()
-            x = math.sqrt(-2 * math.log(X)) * math.cos(2 * math.pi * Y)
-            y = math.sqrt(-2 * math.log(X)) * math.sin(2 * math.pi * Y)
-            rnd = x
-            g = y
-            gaus_stored = True
-            
-        sacco.append(rnd)    
-    return np.asarray(sacco, float64)
+# -----------------------------------------------------------------------------
+# SIMULATION ON RADIOACTIVE DECAY
+# -----------------------------------------------------------------------------
 
 
-
+# Given an initial number of particles in the sample, at each iteretion 
+# (corresponding to an actual time interval) one particle can decay if a
+# randomly (uniformly) generated number is lower then lambda (lambda in [0,1])
 @jit
 def decay(Ni, l):
+    
     can = [Ni]
     Time = [0]
     t=0
     Nleft = Ni
+    
     while Nleft > 0:
         chickpeas = 0
         for i in range(Nleft):
@@ -110,11 +113,16 @@ def decay(Ni, l):
         t += 1
         can.append(Nleft)
         Time.append(t)
+        
     return np.asarray(can[:-1], int32), np.asarray(Time[:-1], int32)
 
 
 
+
+
+# Just allows to plot different dataset with different labels
 def multiple_plot(lst, l):
+    
     for j in range(len(lst)):
         pino = decay(lst[j], l[j])
         pigna = pino[0]
@@ -122,10 +130,11 @@ def multiple_plot(lst, l):
         plt.scatter(ago, np.log(pigna), label=f'N(0) = {lst[j]},  $\lambda$ = {round(l[j],1)}', marker='o')
         plt.xlabel('Time t')
         plt.ylabel('ln( N(t) )')
-        plt.title('Simulation of radioactive decay')
-        plt.legend()
+        plt.legend(fontsize='7')
         plt.grid(True)
         del pino
+        
     plt.show()
+    
     return
 
