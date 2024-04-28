@@ -1,36 +1,41 @@
 """
-Now I have to do everything from the beginning again
+Plots and other numerical estimations (4th week)
 
 @author: david
 """
 
-from Funz4 import  RW1D_average, iter_plot, line, Accuracy, graphNwalk_N,  graphMsdN, Histo_gauss, RW1D_average_random_l
 import matplotlib.pyplot as plt
 import numpy as np
 from scipy.optimize import curve_fit
-import math
-from numba import jit
+from Funz4 import RW1D_average, iter_plot, line, Accuracy, graphNwalk_N 
+from Funz4 import graphMsdN, Histo_gauss, RW1D_average_random_l
 
 
-#-- ES 1 --
-#---------- 1D Random Walks (RW)
 
-# 1.1) Properties
-"""
+# -----------------------------------------------------------------------------
+# 1D RANDOM WALK
+# -----------------------------------------------------------------------------
+
+
+# --------------------------
+# 1.1) For a set of RWs of a given number it plots all the instantaneous position
+# x(t) and mean square distance dx^2(t) alongside the expected behaviours of
+# their averaged values (averages meant instant by instant on all the walkers).
+# Furthermore, a linear fit is applied on both the numerical averages <x(t)>
+# and <dx^2(t)>.
+
 ocean = RW1D_average(100, 64, 0, 0.5)
-
 
 iter_plot(ocean, 0, 64, 100, 0.5, 'Istantaneous position $x_i$', False)
 
-iter_plot(ocean, 1, 64, 100, 0.5, 'Istantaneous squared position $x_i ^2$', False)
+iter_plot(ocean, 1, 64, 100, 0.5, 'Istantaneous square position $x_i ^2$', False)
 
 iter_plot(ocean, 0, 64, 100, 0.5, 'Istantaneous position $x_i$', True)
 
-iter_plot(ocean, 1, 64, 100, 0.5, 'Istantaneous squared position $x_i ^2$', True)
+iter_plot(ocean, 1, 64, 100, 0.5, 'Istantaneous square position $x_i ^2$', True)
 
 print( ocean[2][-1])
 print( ocean[3][-1])
-
 
 
 t = np.array([i for i in range(1,65)])
@@ -67,32 +72,48 @@ plt.ylabel(r'$\langle (\Delta x_{i})^2 \rangle^{num}$', fontsize=12)
 plt.legend()
 plt.grid(True)
 plt.show()
-"""
 
 
-# ---- 1.3) and 1.4) Accuracy of the mean square distance
-"""
+
+
+
+# --------------------------
+#  1.3), 1.4) Estimates the minimum number of walkers needed, on average, to
+# give an accuracy less or equal to 5%.
+# In addition it is investigated a possible dependence of accuracy on N_steps.
+
 minimum_Nwalk = Accuracy(100000, 0.05, 0, 64, 10, 10, 0.5)
    
 plot_varyingN = graphNwalk_N()
-"""
 
 
-# ---- 1.5) Dependence of the Mean square distance on N
-"""
+
+
+
+# --------------------------
+# 1.5) It plots the dependence of the Mean square distance on N_steps
+
 plot_MSDvsN = graphMsdN()
-"""
 
 
-# ---- 1.6) Distribution P_N(x)
-"""
+
+
+
+# --------------------------
+# 1.6) It verifies in a qualitative way that for sufficiently large N_steps
+# the distribution of final positions P_N(x) can be approximated with a gaussian
+
 plot_Histo = Histo_gauss()
-"""
 
 
-# ---- 1.7) RW with steps of different lenght (taken from a certain distribution, no more 1 constant!)
-"""
+
+
+
+# --------------------------
+# 1.7) Provides key quantities to study the behaviour of RWs with steps of
+# different length (taken from a certain distribution, no more 1 constant!)
+
 random_l = RW1D_average_random_l(10000, 64, 0, 0.5)
 #From this tuple we can repeat all the procedures done from 1.1 to 1.7. Just play!
-"""
+
 

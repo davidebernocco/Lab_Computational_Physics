@@ -1,5 +1,5 @@
 """
-Library of self-made functions needed for the codes implemented for the exercises of the 4th week
+Library of self-made functions needed for the 4th week exercises
 
 @author: david
 """
@@ -14,7 +14,13 @@ from matplotlib.animation import PillowWriter
 
 
 
+# -----------------------------------------------------------------------------
+# 1D RANDOM WALK
+# -----------------------------------------------------------------------------
 
+
+
+# Follows the evolution of a single RW
 @njit
 def RW_1D(N, x0, Pl):
     
@@ -36,6 +42,9 @@ def RW_1D(N, x0, Pl):
 
 
 
+
+# Follows the evolution of an ensemble of multiple (non-interacting) RW and
+# outputs averaged quantities.
 @njit
 def RW1D_average(N_w, N, x0, Pl):
     
@@ -66,6 +75,8 @@ def RW1D_average(N_w, N, x0, Pl):
 
 
 
+
+# Function that helps to estimate the ideal number of N_walkers (through accuracy)
 @jit
 def Accuracy(steps, acc, x0, N, Nw0, passo, Pl):
     
@@ -113,6 +124,7 @@ def Accuracy(steps, acc, x0, N, Nw0, passo, Pl):
 
 
 
+# Just allow to plot multiple graphs
 def iter_plot(vect, index, N, N_w, Pl, string, test):
     
     t = [i for i in range(N+1)]
@@ -136,6 +148,7 @@ def iter_plot(vect, index, N, N_w, Pl, string, test):
 
 
 
+# Linear function for fit
 @jit
 def line(x, m, q):
     
@@ -144,6 +157,7 @@ def line(x, m, q):
 
 
 
+# Plots the number of ideal N_walkers vs the number N_steps
 def graphNwalk_N():
     
     metro = [i for i in range(10, 500, 10)]
@@ -161,6 +175,8 @@ def graphNwalk_N():
 
 
 
+# Takes multiple RWs and reports the instantaneous Mean square position, along
+# with a linear fit on this trend
 def graphMsdN():
     
     kilo = np.asarray([2**i for i in range(3, 8)], dtype=np.int32)
@@ -185,6 +201,7 @@ def graphMsdN():
 
 
 
+# Plots multiple histogram obtained from multiple RW position distributions
 def Histo_gauss():
     
     bucket = [8, 16, 32, 64]
@@ -211,6 +228,9 @@ def Histo_gauss():
 
 
 
+
+# Does exactly what does "RW1D_average", but using a certain distribution in 
+# order to generate each RW length step
 @njit
 def RW1D_average_random_l(N_w, N, x0, Pl):
     
@@ -246,12 +266,17 @@ def RW1D_average_random_l(N_w, N, x0, Pl):
 
 
 
+
 # -----------------------------------------------------------------------------
-# ----------- Functions for the 2d_RW part:
+# 2D RANDOM WALK: SQUARE LATTICE
+# -----------------------------------------------------------------------------
 
 
+# It is the analogus of "RW1D_average", but for RWs moving in 2D space.
+# A grater richness is allowed: we can chose between a (square) lattice dynamic
+# or a case in which each step of equal length can be done in all direction. 
 @njit
-def RW2D_average(N_w, N, x0, y0, Pl, Pr, Pd, Theta):  # 2D analogous of the "RW1D_average" function in Funz4
+def RW2D_average(N_w, N, x0, y0, Pl, Pr, Pd, Theta):  
     
     position_x = np.full((N_w, N + 1), x0, dtype=np.float32)
     position_y = np.full((N_w, N + 1), x0, dtype=np.float32)
@@ -331,7 +356,9 @@ def RW2D_average(N_w, N, x0, y0, Pl, Pr, Pd, Theta):  # 2D analogous of the "RW1
 
 
 
-def RW_2D_plot(Opera, plot_name):  #Plotting the gif of all the walkers justapposed
+
+# Create an animated gif of all the 2D walkers justapposed
+def RW_2D_plot(Opera, plot_name):  
 
     fig = plt.figure()
     
@@ -365,19 +392,31 @@ def RW_2D_plot(Opera, plot_name):  #Plotting the gif of all the walkers justappo
 
 
 
-def Prob_distr_lattice(N):
-    
-    points = []
-    radius = []
-    s = []  # Number of doable horizontal steps to reach the selected point. It has values a <= s <= (N-b) for each P(a,b)
+
+# Number of allowed horizontal steps to reach the selected point. 
+# It has values a <= s <= (N-b) for each P(a,b)
+def allowed_p_r_s(N):
+    p = []
+    r = []
+    s = []  
     for j in range(N+1):
         for i in range(j, N+1):
             if (i+j) % 2 == (N % 2) and (i+j) <= N:
-                points.append([i, j])
-                radius.append(math.sqrt(i**2 + j**2))
+                p.append([i, j])
+                r.append(math.sqrt(i**2 + j**2))
                 s.append([k for k in range(i, (N-j) + 1, 2)])
+                
+    return p, r, s
+
+
+
+
+
+# Analytical discrete P(N) distribution for 2D RWs on square lattice
+# See report for more formal details
+def Prob_distr_lattice(N):
     
-    
+    points, radius, s = allowed_p_r_s(N)
     num_walks = [0] * len(points)
     P_N = [0] * len(points)
    
@@ -412,3 +451,4 @@ def Prob_distr_lattice(N):
     unique_counts = np.asarray(list(inside_dict.values()), dtype=np.float32)
                 
     return unique_radius, unique_counts
+
