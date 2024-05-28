@@ -13,6 +13,7 @@ from FunzF import tent_map, sine_map, logistic_map
 from FuncF import iteration_tent, iteration_sine, iteration_logistic
 from FuncF import bifurcation_tent, bifurcation_sine, bifurcation_logistic
 from FuncF import bifurcation_image, bifurcation_diagram
+from FuncF import lyapunov_sine, lyapunov_logistic
 
 
 
@@ -177,6 +178,19 @@ plt.show()
 
 
 
+# --------------
+# Lyapunov exponent as function of r (sine map)
+Neq = 1000
+Niter = 1000
+r_arr = np.linspace(0.2, 1.0, 2000, dtype = np.float32)
+l_data = lyapunov_sine(r_arr,Neq, Niter)
+
+fig_lyap, ax_lyap = plt.subplots(figsize=(6.2, 4.5))
+ax_lyap.scatter(r_arr, l_data, s=0.2)
+ax_lyap.set_xlabel(r'$ r $', fontsize=15)
+ax_lyap.set_ylabel(r'$ \lambda $', fontsize=15)
+ax_lyap.grid(True)
+plt.show()
 
 
 
@@ -261,6 +275,19 @@ plt.show()
 
 
 
+# --------------
+# Lyapunov exponent as function of r (logistic map)
+Neq = 1000
+Niter = 1000
+r_arr = np.linspace(0.2, 4.0, 4000, dtype = np.float32)
+l_data = lyapunov_logistic(r_arr,Neq, Niter)
+
+fig_lyap, ax_lyap = plt.subplots(figsize=(6.2, 4.5))
+ax_lyap.scatter(r_arr, l_data, s=0.2)
+ax_lyap.set_xlabel(r'$ r $', fontsize=15)
+ax_lyap.set_ylabel(r'$ \lambda $', fontsize=15)
+ax_lyap.grid(True)
+plt.show()
 
 
 

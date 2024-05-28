@@ -34,6 +34,21 @@ def logistic_map(x, r):
 
 
 
+
+@njit
+def d_sine_map(x, r):
+    return np.pi * r * np.cos(np.pi * x)
+
+
+
+@njit
+def d_logistic_map(x, r):
+    return r * (1 - 2 * x)
+
+
+
+
+
 @njit
 def iteration_tent(r, n0, n):
     trajectory =  np.zeros((n0 + n), dtype = np.float32)
@@ -251,8 +266,47 @@ def bifurcation_diagram(arr_r, n0, n, Map):
 
 
 
+@njit
+def lyapunov_sine(r, n0, n):
+    l = np.zeros(len(r), dtype = np.float32)
+    
+    
+    for i in range(len(r)):
+        
+        x = np.float32(0.5)
+        
+        for _ in range(1, n0):
+            x = np.float32(sine_map(x, r[i]))
+
+        for k in range(n):
+            x = np.float32(sine_map(x, r[i]))
+            derivative = d_sine_map(x, r[i])
+            logarithm = np.log(np.abs(derivative))
+            l[i] += logarithm
+            
+    return l / n
 
 
+
+@njit
+def lyapunov_logistic(r, n0, n):
+    l = np.zeros(len(r), dtype = np.float32)
+    
+    
+    for i in range(len(r)):
+        
+        x = np.float32(0.5)
+        
+        for _ in range(1, n0):
+            x = np.float32(logistic_map(x, r[i]))
+
+        for k in range(n):
+            x = np.float32(logistic_map(x, r[i]))
+            derivative = d_logistic_map(x, r[i])
+            logarithm = np.log(np.abs(derivative))
+            l[i] += logarithm
+            
+    return l / n
 
 
 
