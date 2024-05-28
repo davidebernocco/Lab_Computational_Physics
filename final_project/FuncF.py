@@ -8,14 +8,29 @@ import numpy as np
 from numba import njit
 
 
+
+x_min, x_max = np.float32(0.0), np.float32(1.0)
+
+
+
 @njit
 def tent_map(x, r):
-    if x < 1/2:
-        x = r*x   
+    if x < 0.5:
+        return r * x
     else:
-        x = r - r*x
-    
-    return x
+        return r * (1 - x)
+
+
+
+@njit
+def sine_map(x, r):
+    return r * np.sin(np.pi * x)
+
+
+
+@njit
+def logistic_map(x, r):
+    return r * x * (1 - x)
 
 
 
@@ -38,9 +53,48 @@ def iteration_tent(r, n0, n):
 
 
 
+@njit
+def iteration_sine(r, n0, n):
+    trajectory =  np.zeros((n0 + n), dtype = np.float32)
+    x0 = np.random.rand()
+    trajectory[0] = x0
+    x = x0
+    
+    for i in range(1, n0):
+        x = sine_map(x, r)
+        trajectory[i] = x
+        
+    for i in range(n):
+        x = sine_map(x, r)
+        trajectory[i + n0] = x 
+        
+    return trajectory
+
+
+
 
 @njit
-def bifurcation(r, n0, n):
+def iteration_logistic(r, n0, n):
+    trajectory =  np.zeros((n0 + n), dtype = np.float32)
+    x0 = np.random.rand()
+    trajectory[0] = x0
+    x = x0
+    
+    for i in range(1, n0):
+        x = logistic_map(x, r)
+        trajectory[i] = x
+        
+    for i in range(n):
+        x = logistic_map(x, r)
+        trajectory[i + n0] = x 
+        
+    return trajectory
+
+
+
+
+@njit
+def bifurcation_tent(r, n0, n):
     accum = np.zeros((len(r), n), dtype = np.float32)
     
     
@@ -59,9 +113,50 @@ def bifurcation(r, n0, n):
 
 
 
+@njit
+def bifurcation_sine(r, n0, n):
+    accum = np.zeros((len(r), n), dtype = np.float32)
+    
+    
+    for i in range(len(r)):
+        
+        x = np.float32(0.5)
+        
+        for _ in range(1, n0):
+            x = np.float32(sine_map(x, r[i]))
+
+        for k in range(n):
+            x = np.float32(sine_map(x, r[i]))
+            accum[i][k] = x
+            
+    return accum
 
 
-def bif_iter(n0, n, r, h, w, x_m, x_M):
+
+@njit
+def bifurcation_logistic(r, n0, n):
+    accum = np.zeros((len(r), n), dtype = np.float32)
+    
+    
+    for i in range(len(r)):
+        
+        x = np.float32(0.5)
+        
+        for _ in range(1, n0):
+            x = np.float32(logistic_map(x, r[i]))
+
+        for k in range(n):
+            x = np.float32(logistic_map(x, r[i]))
+            accum[i][k] = x
+            
+    return accum
+
+
+
+
+
+
+def bif_iter(r, n0, n, h, w, Map):
     image = np.zeros((h, w), dtype = np.float32)
     
     for i in range(w):
@@ -69,11 +164,11 @@ def bif_iter(n0, n, r, h, w, x_m, x_M):
         x = np.float32(0.5)
         
         for _ in range(1, n0):
-            x = np.float32(tent_map(x, r[i]))
+            x = np.float32(Map(x, r[i]))
 
         for k in range(n):
-            x = np.float32(tent_map(x, r[i]))
-            x_idx = int((x - x_m) / (x_M - x_m) * (h - 1))
+            x = np.float32(Map(x, r[i]))
+            x_idx = int((x - x_min) / (x_max - x_min) * (h - 1))
             image[x_idx][i] += 1
     return image
 
@@ -92,18 +187,17 @@ def non_zero_counting(matrix):
 
 
 # scatter plot image
-def bifurcation_image(r, n0, n):
+def bifurcation_image(r, n0, n, Map):
     width, height = len(r), 1000
-    x_min, x_max = np.float32(0.0), np.float32(1.0)
     
     # Calculate (r,x) points frequencies
-    image = bif_iter(n0, n, r, height, width, x_min, x_max)
+    image = bif_iter(r, n0, n, height, width, Map)
             
     # Normalize frequencies
     image= non_zero_counting(image)
     
     # Cap values above 180,000
-    image[image > 3600] = 3600
+    image[image > 1.8*n] = int(1.8*n)
 
     # Normalize the entire image to 0-255
     max_value = np.max(image)
@@ -116,24 +210,22 @@ def bifurcation_image(r, n0, n):
 
 
 # pixel image
-def bifurcation_diagram():
-    width, height = 1000, 1000
-    r_min, r_max = 0.2, 2.0
-    x_min, x_max = 0.0, 1.0
-    r_values = np.linspace(r_min, r_max, width)
+def bifurcation_diagram(arr_r, n0, n, Map):
+    width, height = len(arr_r), 1000
 
     # Initialize the image array
     image = np.zeros((height, width), dtype=np.int32)
 
-    for r_idx, r in enumerate(r_values):
+    for r_idx, r in enumerate(arr_r):
+        
         x = np.float32(0.25)
         # Stabilize x
-        for _ in range(1000):
-            x = np.float32(tent_map(x, r))
+        for _ in range(n0):
+            x = np.float32(Map(x, r))
 
         # Collect 100,000 x-values
-        for _ in range(100000):
-            x = np.float32(tent_map(x, r))
+        for _ in range(n):
+            x = np.float32(Map(x, r))
             if x_min <= x < x_max:
                 x_idx = int((x - x_min) / (x_max - x_min) * (height - 1))
                 image[x_idx, r_idx] += 1
@@ -146,7 +238,7 @@ def bifurcation_diagram():
             image[:, r_idx] = col * non_zero_pixels
 
     # Cap values above 180,000
-    image[image > 180000] = 180000
+    image[image > 1.8*n] = 1.8*n
 
     # Normalize the entire image to 0-255
     max_value = np.max(image)
