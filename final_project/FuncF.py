@@ -177,7 +177,7 @@ def bif_iter(r, n0, n, h, w, Map):
     
     for i in range(w):
         
-        x = np.float32(2/np.sqrt(5))
+        x = np.float32(np.sqrt(2)/5)
         
         for _ in range(1, n0):
             x = np.float32(Map(x, r[i]))
