@@ -13,7 +13,7 @@ from FunzF import tent_map, sine_map, logistic_map
 from FuncF import iteration_tent, iteration_sine, iteration_logistic
 from FuncF import bifurcation_tent, bifurcation_sine, bifurcation_logistic
 from FuncF import bifurcation_image, bifurcation_diagram
-from FuncF import lyapunov_sine, lyapunov_logistic
+from FuncF import lyapunov_sine, lyapunov_logistic, entropy
 
 
 
@@ -125,7 +125,7 @@ plt.show()
 # Raw bifurcation diagram: all the points with same intensity (sine map)
 Neq = 1000
 Niter = 10000
-r_arr = np.linspace(0.2, 1.0, 2000, dtype = np.float32)
+r_arr = np.linspace(0.2, 1.0, 500, dtype = np.float32)
 bif_data = bifurcation_sine(r_arr,Neq, Niter)
 
 
@@ -182,7 +182,7 @@ plt.show()
 # Lyapunov exponent as function of r (sine map)
 Neq = 1000
 Niter = 1000
-r_arr = np.linspace(0.2, 1.0, 2000, dtype = np.float32)
+r_arr = np.linspace(0.2, 1.0, 500, dtype = np.float32)
 l_data = lyapunov_sine(r_arr,Neq, Niter)
 
 fig_lyap, ax_lyap = plt.subplots(figsize=(6.2, 4.5))
@@ -223,7 +223,7 @@ plt.show()
 # Raw bifurcation diagram: all the points with same intensity (logistic map)
 Neq = 1000
 Niter = 10000
-r_arr = np.linspace(0.2, 4.0, 4000, dtype = np.float32)
+r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
 bif_data = bifurcation_logistic(r_arr,Neq, Niter)
 
 
@@ -279,7 +279,7 @@ plt.show()
 # Lyapunov exponent as function of r (logistic map)
 Neq = 1000
 Niter = 1000
-r_arr = np.linspace(0.2, 4.0, 4000, dtype = np.float32)
+r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
 l_data = lyapunov_logistic(r_arr,Neq, Niter)
 
 fig_lyap, ax_lyap = plt.subplots(figsize=(6.2, 4.5))
@@ -292,7 +292,31 @@ plt.show()
 
 
 
+# --------------
+# Entropy as function of r (logistic map)
+Neq = 1000
+Niter = 1000
+r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
+x_arr = np.arange(0, 1000, 1, dtype = np.int32)
+s_data = entropy(r_arr, Neq, Niter, logistic_map)
 
+fig_entr, ax_entr = plt.subplots(figsize=(6.2, 4.5))
+ax_entr.scatter(r_arr, s_data[0], s=1)
+ax_entr.set_xlabel(r'$ r $', fontsize=15)
+ax_entr.set_ylabel(r'$ Entropy $', fontsize=15)
+ax_entr.grid(True)
+plt.show()
+
+
+
+# --------------
+# Probability as a function of x for r=4 (N.B. IT STRONGLY DEPENDS ON x0!!)
+fig_entr, ax_entr = plt.subplots(figsize=(6.2, 4.5))
+ax_entr.scatter(x_arr/1000, s_data[1], s=1)
+ax_entr.set_xlabel(r'$ x $', fontsize=20)
+ax_entr.set_ylabel(r'$ p_{i} $', fontsize=20)
+ax_entr.grid(True)
+plt.show()
 
 
 

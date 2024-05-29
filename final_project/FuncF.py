@@ -6,6 +6,7 @@ Library of self-made functions needed for the final project exercises
 
 import numpy as np
 from numba import njit
+import matplotlib.pyplot as plt
 
 
 
@@ -176,7 +177,7 @@ def bif_iter(r, n0, n, h, w, Map):
     
     for i in range(w):
         
-        x = np.float32(0.5)
+        x = np.float32(2/np.sqrt(5))
         
         for _ in range(1, n0):
             x = np.float32(Map(x, r[i]))
@@ -309,6 +310,78 @@ def lyapunov_logistic(r, n0, n):
     return l / n
 
 
+
+
+
+
+def normalize_freq(matrix):
+    N, M = matrix.shape
+    norm = np.sum(matrix, axis=0)
+    result_matrix = matrix / norm
+    result_matrix = result_matrix.astype(np.float32)
+    return result_matrix
+
+
+
+@njit
+def log_freq(matrix):
+    N, M = matrix.shape
+    m_log_m = np.zeros((N, M), dtype=np.float32)
+    for i in range(N):
+        for j in range(M):
+            m = matrix[i][j]
+            if m != 0:
+                m_log_m[i][j] = m * np.log(m)
+            else:
+                m_log_m[i][j] = 0
+    
+    return m_log_m
+
+    
+
+
+# entropy of a map
+def entropy(r, n0, n, Map):
+    width, height = len(r), 1000
+    
+    # Calculate (r,x) points frequencies
+    image = bif_iter(r, n0, n, height, width, Map)
+            
+    # Normalize frequencies
+    p_i = normalize_freq(image)
+    
+    # Evaluate  -Sum_{i}(p_i * ln(p_i))  for all sampled values of r
+    s_i = log_freq(p_i)
+    S = - np.sum(s_i, axis=0)
+    
+    return S, p_i[:, -1]
+
+
+
+
+
+
+def entropy_histogram(x, p, bin_width):
+    # Create bin edges based on the bin width
+    bins = np.arange(0, 1 + bin_width, bin_width)
+    
+    # Create an array to hold the histogram counts
+    histogram = np.zeros(len(bins) - 1, dtype = np.float32)
+    
+    # Populate the histogram bins with probabilities
+    for coord, prob in zip(x, p):
+        # Find the appropriate bin for each coordinate
+        bin_index = np.searchsorted(bins, coord, side='right') - 1
+        if 0 <= bin_index < len(histogram):
+            histogram[bin_index] += prob
+    
+    # Plot the histogram
+    fig_histo, ax_histo = plt.subplots(figsize=(6.2, 4.5))
+    ax_histo.bar(bins[:-1], histogram, width=bin_width, alpha=0.5, color='b')
+    ax_histo.set_xlabel(r'$ x $', fontsize=20)
+    ax_histo.set_ylabel(r'$ p_{i} $', fontsize=20)
+    ax_histo.grid(True)
+    plt.show()
 
 
 
