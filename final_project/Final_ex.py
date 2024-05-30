@@ -24,15 +24,23 @@ from FuncF import lyapunov_sine, lyapunov_logistic, entropy
     
 # ------------
 # Visualizing transition sequence (tent map)
+# Try 4 values of r: 0.3, 1.07, 1.3, 1.9
+# For 1<r<sqrt(2) there are 8 separate sets of x that correspond to the Julia set
+# for 1<r<2 there are 2 unstable fixed points: x=0 and x=r/(r+1)
+# for r=2 non-periodic dynamics happens only for x0 irrational
 Neq = 10
 Niter = 50
-traiett = iteration_tent(0.37, 0.5, Neq, Niter)
+traiett1 = iteration_tent(0.37, 0.3, Neq, Niter)
+traiett2 = iteration_tent(0.370001, 0.3, Neq, Niter)
 Ntot = np.arange(Neq + Niter)
 
 fig_traj, ax_traj = plt.subplots(figsize=(6.2, 4.5))
-ax_traj.scatter(Ntot, traiett, marker='o', s=50)
-ax_traj.set_xlabel(r'$ i $', fontsize=15)
-ax_traj.set_ylabel(r'$ x_i $', fontsize=15)
+ax_traj.plot(Ntot, traiett1, color='b', label='x0 = 0.37')
+ax_traj.plot(Ntot, traiett2, color='g', label='x0 = 0.370001')
+ax_traj.set_xlabel(r'$ i $', fontsize=20)
+ax_traj.set_ylabel(r'$ x_i $', fontsize=20)
+legend = ax_traj.legend()
+legend.set_title('Tent map (r = 0.3)', prop={'size': 12, 'weight': 'bold'})
 ax_traj.grid(True)
 plt.show()
 
@@ -41,6 +49,7 @@ plt.show()
 
 # --------------
 # Raw bifurcation diagram: all the points with same intensity (tent map)
+# If you zoom in the region 1<r<1.
 Neq = 1000
 Niter = 10000
 r_arr = np.linspace(0.2, 2.0, 1000, dtype = np.float32)
@@ -106,15 +115,20 @@ plt.show()
     
 # ------------
 # Visualizing transition sequence (sine map)
+# Try 4 values of r: 1, 3.1, 3.48, 3.995
 Neq = 10
 Niter = 50
-traiett = iteration_sine(0.37, 0.5, Neq, Niter)
+traiett1 = iteration_sine(0.37, 3.1, Neq, Niter)
+traiett2 = iteration_sine(0.370001, 3.1, Neq, Niter)
 Ntot = np.arange(Neq + Niter)
 
 fig_traj, ax_traj = plt.subplots(figsize=(6.2, 4.5))
-ax_traj.scatter(Ntot, traiett, marker='o', s=50)
-ax_traj.set_xlabel(r'$ i $', fontsize=15)
-ax_traj.set_ylabel(r'$ x_i $', fontsize=15)
+ax_traj.plot(Ntot, traiett1, color='b', label='x0 = 0.37')
+ax_traj.plot(Ntot, traiett2, color='g', label='x0 = 0.370001')
+ax_traj.set_xlabel(r'$ i $', fontsize=20)
+ax_traj.set_ylabel(r'$ x_i $', fontsize=20)
+legend = ax_traj.legend()
+legend.set_title('Sine map (r = 3.1)', prop={'size': 12, 'weight': 'bold'})
 ax_traj.grid(True)
 plt.show()
 
@@ -205,6 +219,15 @@ plt.show()
 # ------------
 # Visualizing transition sequence (logistic map)
 # Try 4 values of r: 1, 3.1, 3.48, 3.995
+# For 0<=r<=1 one fixed point at x=0
+# For 1<r<=3 oe fixed point at x = (r-1)/r
+# For 3<r<3.56995 the attractor is made of a discrete number of points (periodical doubling)
+# For r=4 from almost all initial conditions the iterate sequence is chaotic. 
+# Nevertheless, there exist an infinite number of initial conditions that lead to cycles
+# Number 0f cycles of minimal lenght k:
+    #k=1 -> n=2 (x=0, x=3/4)
+    #k=2 -> n=1 (oscillates between x=(5-sqrt(5))/8 and x=(5+sqrt(5))/8 )
+    #etc.....
 Neq = 10
 Niter = 50
 traiett1 = iteration_logistic(0.37, 3.995, Neq, Niter)
@@ -216,7 +239,8 @@ ax_traj.plot(Ntot, traiett1, color='b', label='x0 = 0.37')
 ax_traj.plot(Ntot, traiett2, color='g', label='x0 = 0.370001')
 ax_traj.set_xlabel(r'$ i $', fontsize=20)
 ax_traj.set_ylabel(r'$ x_i $', fontsize=20)
-ax_traj.legend()
+legend = ax_traj.legend()
+legend.set_title('Logistic map (r = 3.995)', prop={'size': 12, 'weight': 'bold'})
 ax_traj.grid(True)
 plt.show()
 
