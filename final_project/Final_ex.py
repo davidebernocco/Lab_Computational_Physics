@@ -224,10 +224,12 @@ plt.show()
 # For 3<r<3.56995 the attractor is made of a discrete number of points (periodical doubling)
 # For r=4 from almost all initial conditions the iterate sequence is chaotic. 
 # Nevertheless, there exist an infinite number of initial conditions that lead to cycles
-# Number 0f cycles of minimal lenght k:
-    #k=1 -> n=2 (x=0, x=3/4)
+# Number 0f cycles of minimal lenght k:  (need to solve f(f(f......)) = x )
+    #k=1 -> n=2 (1:x=0, 2:x=3/4)
     #k=2 -> n=1 (oscillates between x=(5-sqrt(5))/8 and x=(5+sqrt(5))/8 )
-    #etc.....
+    #k=3 -> n=2 (1: oscillates between x=1/2*(1 + np.cos(np.pi/9)) , x~0.116978 , x~0.413176 )
+    #           (2: oscillates between x~0.950484 , x~0.188255 , x~0.61126 )
+    #etc...
 Neq = 10
 Niter = 50
 traiett1 = iteration_logistic(0.37, 3.995, Neq, Niter)
