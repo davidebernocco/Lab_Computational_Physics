@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 matplotlib.rcParams['text.usetex'] = True
 
-from FunzF import tent_map, sine_map, logistic_map
+from FunzF import tent_map, sine_map, logistic_map, non_predicibility_vs_chaos
 from FuncF import iteration_tent, iteration_sine, iteration_logistic
 from FuncF import bifurcation_tent, bifurcation_sine, bifurcation_logistic
 from FuncF import bifurcation_image, bifurcation_diagram
@@ -26,7 +26,7 @@ from FuncF import lyapunov_sine, lyapunov_logistic, entropy
 # Visualizing transition sequence (tent map)
 Neq = 10
 Niter = 50
-traiett = iteration_tent(0.5, Neq, Niter)
+traiett = iteration_tent(0.37, 0.5, Neq, Niter)
 Ntot = np.arange(Neq + Niter)
 
 fig_traj, ax_traj = plt.subplots(figsize=(6.2, 4.5))
@@ -44,7 +44,7 @@ plt.show()
 Neq = 1000
 Niter = 10000
 r_arr = np.linspace(0.2, 2.0, 1000, dtype = np.float32)
-bif_data = bifurcation_tent(r_arr,Neq, Niter)
+bif_data = bifurcation_tent(np.float32(0.5), r_arr,Neq, Niter)
 
 
 r_repeated = np.repeat(r_arr, Niter)
@@ -67,7 +67,7 @@ plt.show()
 Neq = 1000
 Niter = 10000
 x_arr = np.arange(0, 1000, 1, dtype = np.int32)
-bif_data = bifurcation_image(r_arr, Neq, Niter, tent_map)
+bif_data = bifurcation_image(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, tent_map)
 
 X, Y = np.meshgrid(r_arr, x_arr/1000)
 
@@ -85,7 +85,7 @@ plt.show()
 # Bifurcation diagram with pixels (tent map)
 # Colored map
 
-bifurcation_image = bifurcation_diagram(r_arr, Neq, Niter, tent_map)
+bifurcation_image = bifurcation_diagram(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, tent_map)
 
 plt.figure(figsize=(10, 10))
 plt.imshow(bifurcation_image, extent=[0.2, 2.0, 0.0, 1.0], aspect='auto', cmap='Blues', vmin=0, vmax=255, origin='lower')
@@ -108,7 +108,7 @@ plt.show()
 # Visualizing transition sequence (sine map)
 Neq = 10
 Niter = 50
-traiett = iteration_sine(0.5, Neq, Niter)
+traiett = iteration_sine(0.37, 0.5, Neq, Niter)
 Ntot = np.arange(Neq + Niter)
 
 fig_traj, ax_traj = plt.subplots(figsize=(6.2, 4.5))
@@ -126,7 +126,7 @@ plt.show()
 Neq = 1000
 Niter = 10000
 r_arr = np.linspace(0.2, 1.0, 500, dtype = np.float32)
-bif_data = bifurcation_sine(r_arr,Neq, Niter)
+bif_data = bifurcation_sine(np.float32(0.5), r_arr,Neq, Niter)
 
 
 r_repeated = np.repeat(r_arr, Niter)
@@ -149,7 +149,7 @@ plt.show()
 Neq = 1000
 Niter = 10000
 x_arr = np.arange(0, 1000, 1, dtype = np.int32)
-bif_data = bifurcation_image(r_arr, Neq, Niter, sine_map)
+bif_data = bifurcation_image(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, sine_map)
 
 X, Y = np.meshgrid(r_arr, x_arr/1000)
 
@@ -167,7 +167,7 @@ plt.show()
 # Bifurcation diagram with pixels (sine map)
 # Colored map
 
-bifurcation_image = bifurcation_diagram(r_arr, Neq, Niter, sine_map)
+bifurcation_image = bifurcation_diagram(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, sine_map)
 
 plt.figure(figsize=(10, 10))
 plt.imshow(bifurcation_image, extent=[0.2, 1.0, 0.0, 1.0], aspect='auto', cmap='Blues', vmin=0, vmax=255, origin='lower')
@@ -183,7 +183,7 @@ plt.show()
 Neq = 1000
 Niter = 1000
 r_arr = np.linspace(0.2, 1.0, 500, dtype = np.float32)
-l_data = lyapunov_sine(r_arr,Neq, Niter)
+l_data = lyapunov_sine(0.25, r_arr,Neq, Niter)
 
 fig_lyap, ax_lyap = plt.subplots(figsize=(6.2, 4.5))
 ax_lyap.scatter(r_arr, l_data, s=0.2)
@@ -204,17 +204,43 @@ plt.show()
     
 # ------------
 # Visualizing transition sequence (logistic map)
+# Try 4 values of r: 1, 3.1, 3.48, 3.995
 Neq = 10
 Niter = 50
-traiett = iteration_logistic(0.5, Neq, Niter)
+traiett1 = iteration_logistic(0.37, 3.995, Neq, Niter)
+traiett2 = iteration_logistic(0.370001, 3.995, Neq, Niter)
 Ntot = np.arange(Neq + Niter)
 
 fig_traj, ax_traj = plt.subplots(figsize=(6.2, 4.5))
-ax_traj.scatter(Ntot, traiett, marker='o', s=50)
-ax_traj.set_xlabel(r'$ i $', fontsize=15)
-ax_traj.set_ylabel(r'$ x_i $', fontsize=15)
+ax_traj.plot(Ntot, traiett1, color='b', label='x0 = 0.37')
+ax_traj.plot(Ntot, traiett2, color='g', label='x0 = 0.370001')
+ax_traj.set_xlabel(r'$ i $', fontsize=20)
+ax_traj.set_ylabel(r'$ x_i $', fontsize=20)
+ax_traj.legend()
 ax_traj.grid(True)
 plt.show()
+
+
+
+
+# ---------------
+# Chaos and randomness
+
+arr_chaos, arr_random = non_predicibility_vs_chaos(3.995, 3000)
+
+fig_cr = plt.figure(figsize=(6.2, 4.5))
+ax_cr = fig_cr.add_subplot(111, projection='3d')
+ax_cr.scatter(arr_chaos[0], arr_chaos[1], arr_chaos[2], marker='*', s=50, color='r', label='Chaotic trajectory')
+ax_cr.scatter(arr_random[0], arr_random[1], arr_random[2], marker='o', s=2, color='b', label='Random trajectory')
+ax_cr.set_xlabel(r'$ x_i $', fontsize=15)
+ax_cr.set_ylabel(r'$ x_{i+1} $', fontsize=15)
+ax_cr.set_zlabel(r'$ x_{i+2} $', fontsize=15)
+ax_cr.legend(loc='upper right', bbox_to_anchor=(1.2, 1.05))
+ax_cr.grid(True)
+plt.show()
+
+
+
 
 
 
@@ -224,7 +250,7 @@ plt.show()
 Neq = 1000
 Niter = 10000
 r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
-bif_data = bifurcation_logistic(r_arr,Neq, Niter)
+bif_data = bifurcation_logistic(np.float32(0.5), r_arr,Neq, Niter)
 
 
 r_repeated = np.repeat(r_arr, Niter)
@@ -247,7 +273,7 @@ plt.show()
 Neq = 1000
 Niter = 1000
 x_arr = np.arange(0, 1000, 1, dtype = np.int32)
-bif_data = bifurcation_image(r_arr, Neq, Niter, logistic_map)
+bif_data = bifurcation_image(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, logistic_map)
 
 X, Y = np.meshgrid(r_arr, x_arr/1000)
 
@@ -265,7 +291,7 @@ plt.show()
 # Bifurcation diagram with pixels (logistic map)
 # Colored map
 
-bifurcation_image = bifurcation_diagram(r_arr, Neq, Niter, logistic_map)
+bifurcation_image = bifurcation_diagram(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, logistic_map)
 
 plt.figure(figsize=(10, 10))
 plt.imshow(bifurcation_image, extent=[0.2, 2.0, 0.0, 1.0], aspect='auto', cmap='Blues', vmin=0, vmax=255, origin='lower')
@@ -280,7 +306,7 @@ plt.show()
 Neq = 1000
 Niter = 1000
 r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
-l_data = lyapunov_logistic(r_arr,Neq, Niter)
+l_data = lyapunov_logistic(0.25, r_arr,Neq, Niter)
 
 fig_lyap, ax_lyap = plt.subplots(figsize=(6.2, 4.5))
 ax_lyap.scatter(r_arr, l_data, s=0.2)
@@ -298,7 +324,7 @@ Neq = 1000
 Niter = 1000
 r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
 x_arr = np.arange(0, 1000, 1, dtype = np.int32)
-s_data = entropy(r_arr, Neq, Niter, logistic_map)
+s_data = entropy(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, logistic_map)
 
 fig_entr, ax_entr = plt.subplots(figsize=(6.2, 4.5))
 ax_entr.scatter(r_arr, s_data[0], s=1)
@@ -331,7 +357,7 @@ plt.show()
 import numpy as np
 
 def henon_map(x, a=1.4, b=0.3):
-    """Compute the Hénon map for a given state x."""
+    #Compute the Hénon map for a given state x.
     x_new = np.zeros_like(x)
     # Nonlinear Henon map equations
     x_new[0] = 1 - a * x[0]**2 + b * x[1]
@@ -339,7 +365,7 @@ def henon_map(x, a=1.4, b=0.3):
     return x_new
 
 def linearized_henon(x, a=1.4, b=0.3):
-    """Compute the linearized Hénon map for a given state x."""
+    #Compute the linearized Hénon map for a given state x.
     n = len(x) // 2
     x_new = np.zeros_like(x)
     # Nonlinear Henon map equations
@@ -353,7 +379,7 @@ def linearized_henon(x, a=1.4, b=0.3):
     return x_new
 
 def gram_schmidt(vectors):
-    """Apply the Gram-Schmidt process to the given set of vectors."""
+    #Apply the Gram-Schmidt process to the given set of vectors.
     orthonormal_basis = np.zeros_like(vectors)
     for i in range(vectors.shape[1]):
         new_vector = vectors[:, i].copy()

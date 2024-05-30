@@ -51,9 +51,8 @@ def d_logistic_map(x, r):
 
 
 @njit
-def iteration_tent(r, n0, n):
+def iteration_tent(x0, r, n0, n):
     trajectory =  np.zeros((n0 + n), dtype = np.float32)
-    x0 = np.random.rand()
     trajectory[0] = x0
     x = x0
     
@@ -70,9 +69,8 @@ def iteration_tent(r, n0, n):
 
 
 @njit
-def iteration_sine(r, n0, n):
+def iteration_sine(x0, r, n0, n):
     trajectory =  np.zeros((n0 + n), dtype = np.float32)
-    x0 = np.random.rand()
     trajectory[0] = x0
     x = x0
     
@@ -90,9 +88,8 @@ def iteration_sine(r, n0, n):
 
 
 @njit
-def iteration_logistic(r, n0, n):
+def iteration_logistic(x0, r, n0, n):
     trajectory =  np.zeros((n0 + n), dtype = np.float32)
-    x0 = np.random.rand()
     trajectory[0] = x0
     x = x0
     
@@ -109,14 +106,39 @@ def iteration_logistic(r, n0, n):
 
 
 
+
 @njit
-def bifurcation_tent(r, n0, n):
+def non_predicibility_vs_chaos(r, n):
+    m = int(n/3)
+    x_chaos =  np.zeros((3, m), dtype = np.float32)
+    x_random =  np.zeros((3, m), dtype = np.float32)
+    x0_c = np.random.rand()
+    x_c = x0_c
+    
+    for i in range(n):
+        x_c = logistic_map(x_c, r)
+        x_r = np.random.rand()
+        j = i % 3
+        k = i // 3
+        
+        x_chaos[j][k] = x_c
+        x_random[j][k] = x_r
+       
+    return x_chaos, x_random
+
+
+
+
+
+
+@njit
+def bifurcation_tent(x0, r, n0, n):
     accum = np.zeros((len(r), n), dtype = np.float32)
     
     
     for i in range(len(r)):
         
-        x = np.float32(0.5)
+        x = x0
         
         for _ in range(1, n0):
             x = np.float32(tent_map(x, r[i]))
@@ -130,13 +152,13 @@ def bifurcation_tent(r, n0, n):
 
 
 @njit
-def bifurcation_sine(r, n0, n):
+def bifurcation_sine(x0, r, n0, n):
     accum = np.zeros((len(r), n), dtype = np.float32)
     
     
     for i in range(len(r)):
         
-        x = np.float32(0.5)
+        x = x0
         
         for _ in range(1, n0):
             x = np.float32(sine_map(x, r[i]))
@@ -150,13 +172,13 @@ def bifurcation_sine(r, n0, n):
 
 
 @njit
-def bifurcation_logistic(r, n0, n):
+def bifurcation_logistic(x0, r, n0, n):
     accum = np.zeros((len(r), n), dtype = np.float32)
     
     
     for i in range(len(r)):
         
-        x = np.float32(0.5)
+        x = x0
         
         for _ in range(1, n0):
             x = np.float32(logistic_map(x, r[i]))
@@ -172,12 +194,12 @@ def bifurcation_logistic(r, n0, n):
 
 
 
-def bif_iter(r, n0, n, h, w, Map):
+def bif_iter(x0, r, n0, n, h, w, Map):
     image = np.zeros((h, w), dtype = np.float32)
     
     for i in range(w):
         
-        x = np.float32(np.sqrt(2)/5)
+        x = x0
         
         for _ in range(1, n0):
             x = np.float32(Map(x, r[i]))
@@ -203,11 +225,11 @@ def non_zero_counting(matrix):
 
 
 # scatter plot image
-def bifurcation_image(r, n0, n, Map):
+def bifurcation_image(x0, r, n0, n, Map):
     width, height = len(r), 1000
     
     # Calculate (r,x) points frequencies
-    image = bif_iter(r, n0, n, height, width, Map)
+    image = bif_iter(x0, r, n0, n, height, width, Map)
             
     # Normalize frequencies
     image= non_zero_counting(image)
@@ -226,7 +248,7 @@ def bifurcation_image(r, n0, n, Map):
 
 
 # pixel image
-def bifurcation_diagram(arr_r, n0, n, Map):
+def bifurcation_diagram(x0, arr_r, n0, n, Map):
     width, height = len(arr_r), 1000
 
     # Initialize the image array
@@ -234,7 +256,7 @@ def bifurcation_diagram(arr_r, n0, n, Map):
 
     for r_idx, r in enumerate(arr_r):
         
-        x = np.float32(0.25)
+        x = x0
         # Stabilize x
         for _ in range(n0):
             x = np.float32(Map(x, r))
@@ -268,13 +290,13 @@ def bifurcation_diagram(arr_r, n0, n, Map):
 
 
 @njit
-def lyapunov_sine(r, n0, n):
+def lyapunov_sine(x0, r, n0, n):
     l = np.zeros(len(r), dtype = np.float32)
     
     
     for i in range(len(r)):
         
-        x = np.float32(0.5)
+        x = x0
         
         for _ in range(1, n0):
             x = np.float32(sine_map(x, r[i]))
@@ -290,13 +312,13 @@ def lyapunov_sine(r, n0, n):
 
 
 @njit
-def lyapunov_logistic(r, n0, n):
+def lyapunov_logistic(x0, r, n0, n):
     l = np.zeros(len(r), dtype = np.float32)
     
     
     for i in range(len(r)):
         
-        x = np.float32(0.5)
+        x = x0
         
         for _ in range(1, n0):
             x = np.float32(logistic_map(x, r[i]))
@@ -341,11 +363,11 @@ def log_freq(matrix):
 
 
 # entropy of a map
-def entropy(r, n0, n, Map):
+def entropy(x0, r, n0, n, Map):
     width, height = len(r), 1000
     
     # Calculate (r,x) points frequencies
-    image = bif_iter(r, n0, n, height, width, Map)
+    image = bif_iter(x0, r, n0, n, height, width, Map)
             
     # Normalize frequencies
     p_i = normalize_freq(image)
