@@ -14,7 +14,7 @@ from FuncF import iteration_tent, iteration_sine, iteration_logistic
 from FuncF import bifurcation_tent, bifurcation_sine, bifurcation_logistic
 from FuncF import bifurcation_image, bifurcation_diagram
 from FuncF import lyapunov_sine, lyapunov_logistic, entropy
-
+from FuncF import iteration_Henon
 
 
 # -----------------------------------------------------------------------------
@@ -273,6 +273,9 @@ plt.show()
 
 # --------------
 # Raw bifurcation diagram: all the points with same intensity (logistic map)
+# Self-similarities:
+# Zooming around r=3.8494344 we should see a period-doubling approach to chaos 3,6,12 ..
+# Zooming around r=3.8284 we should see a period-tripling approach to chaos
 Neq = 1000
 Niter = 10000
 r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
@@ -376,7 +379,24 @@ plt.show()
 
 
 
+# -----------------------------------------------------------------------------
+# HENON MAP 2D
+# -----------------------------------------------------------------------------
 
+
+# Trajectory for fixed a and b
+
+r_init = np.asarray([0.0,0.0], dtype=np.float32)
+arr_henon = iteration_Henon(r_init, 1.4, 0.3, 10, 50)
+
+fig_hen = plt.figure(figsize=(6.2, 4.5))
+ax_hen = fig_hen.add_subplot(111)
+ax_hen.scatter(arr_henon[0], arr_henon[1], marker='o', s=10, color='b', label='Chaotic trajectory')
+ax_hen.set_xlabel(r'$ x_i $', fontsize=15)
+ax_hen.set_ylabel(r'$ y_i $', fontsize=15)
+ax_hen.legend(loc='upper right', bbox_to_anchor=(1.2, 1.05))
+ax_hen.grid(True)
+plt.show()
 
 
 """

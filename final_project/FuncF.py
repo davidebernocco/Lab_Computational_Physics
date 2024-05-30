@@ -408,3 +408,35 @@ def entropy_histogram(x, p, bin_width):
 
 
 
+
+@njit
+def Henon_map(r0, a, b):
+    r = np.zeros_like(r0, dtype=np.float32)
+    r[0] = r0[1] + 1 - a*r0[0]**2
+    r[1] = b*r0[0]
+    
+    return r
+
+
+
+@njit
+def iteration_Henon(r0, a, b, n0, n):
+    trajectory =  np.zeros((2, n0 + n), dtype = np.float32)
+    trajectory[0][0], trajectory[1][0] = r0[0], r0[1]
+    r = r0
+    
+    for i in range(1, n0):
+        r = Henon_map(r, a, b)
+        trajectory[0][i] = r[0]
+        trajectory[1][i] = r[1]
+        
+    for i in range(n):
+        r = Henon_map(r, a, b)
+        trajectory[0][n0 + i] = r[0]
+        trajectory[1][n0 + i] = r[1]
+        
+    return trajectory
+
+
+
+
