@@ -421,19 +421,17 @@ def Henon_map(r0, a, b):
 
 @njit
 def iteration_Henon(r0, a, b, n0, n):
-    trajectory =  np.zeros((2, n0 + n), dtype = np.float32)
+    trajectory =  np.zeros((2, n), dtype = np.float32)
     trajectory[0][0], trajectory[1][0] = r0[0], r0[1]
-    r = r0
+    r = r0.copy()
     
     for i in range(1, n0):
         r = Henon_map(r, a, b)
-        trajectory[0][i] = r[0]
-        trajectory[1][i] = r[1]
         
     for i in range(n):
         r = Henon_map(r, a, b)
-        trajectory[0][n0 + i] = r[0]
-        trajectory[1][n0 + i] = r[1]
+        trajectory[0][i] = r[0]
+        trajectory[1][i] = r[1]
         
     return trajectory
 

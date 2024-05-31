@@ -383,7 +383,7 @@ plt.show()
 # HENON MAP 2D
 # -----------------------------------------------------------------------------
 
-
+# -------------------
 # Trajectory for fixed a and b
 
 r_init = np.asarray([0.0,0.0], dtype=np.float32)
@@ -400,5 +400,8 @@ plt.show()
 
 
 
+
+# ---------------
+# Estimation of Lyapunov exponents
 lyap_henon = Lyapunov_spectrum_2D(r_init, 1.4, 0.3, 1000000)
 
