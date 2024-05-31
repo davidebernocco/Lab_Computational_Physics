@@ -411,7 +411,7 @@ def entropy_histogram(x, p, bin_width):
 
 @njit
 def Henon_map(r0, a, b):
-    r = np.zeros_like(r0, dtype=np.float32)
+    r = np.zeros(2, dtype=np.float32)
     r[0] = r0[1] + 1 - a*r0[0]**2
     r[1] = b*r0[0]
     
@@ -436,6 +436,69 @@ def iteration_Henon(r0, a, b, n0, n):
         trajectory[1][n0 + i] = r[1]
         
     return trajectory
+
+
+
+@njit
+def jacobian(r, a, b):
+   J = np.zeros((2, 2), dtype=np.float32)
+   J[0, 0] = -2 * a * r[0]
+   J[0, 1] = 1.0
+   J[1, 0] = b
+   J[1, 1] = 0.0
+   
+   return J
+
+
+@njit
+def orthonormalize(v1, v2):
+    U1 = v1
+    U2 = v2 - (np.dot(v2, U1) / np.dot(U1, U1)) * U1
+    norm1 = np.float32(np.linalg.norm(U1))
+    norm2 = np.float32(np.linalg.norm(U2))
+    u1 = U1 / norm1
+    u2 = U2 / norm2
+    return u1, u2, norm1, norm2
+
+
+@njit
+def Lyapunov_spectrum_2D(r0, a, b, n):
+    w1_0 = np.asarray([1.0, 0.0], dtype=np.float32)
+    w2_0 = np.asarray([0.0, 1.0], dtype=np.float32)
+    lambda1, lambda2 = np.float32(0), np.float32(0)
+    w1, w2 = w1_0, w2_0
+    r = r0
+
+    for _ in range(n):
+        Jf = jacobian(r, a, b)
+        z1 = np.dot(Jf, w1)
+        z2 = np.dot(Jf, w2)
+        u1, u2, norm1, norm2 = orthonormalize(z1, z2)
+        lambda1 += np.log(norm1)
+        lambda2 += np.log(norm2)
+        w1, w2 = u1, u2
+        r = Henon_map(r, a, b)
+    
+    return lambda1 / n, lambda2 / n
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
