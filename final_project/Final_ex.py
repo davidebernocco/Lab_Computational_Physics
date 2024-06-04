@@ -13,7 +13,7 @@ from FunzF import tent_map, sine_map, logistic_map, non_predicibility_vs_chaos
 from FuncF import iteration_tent, iteration_sine, iteration_logistic
 from FuncF import bifurcation_tent, bifurcation_sine, bifurcation_logistic
 from FuncF import bifurcation_image, bifurcation_diagram
-from FuncF import lyapunov_sine, lyapunov_logistic, entropy
+from FuncF import lyapunov_sine, lyapunov_logistic, entropy, beta_function
 from FuncF import iteration_Henon, Lyapunov_spectrum_2D
 
 
@@ -28,6 +28,10 @@ from FuncF import iteration_Henon, Lyapunov_spectrum_2D
 # For 1<r<sqrt(2) there are 8 separate sets of x that correspond to the Julia set
 # for 1<r<2 there are 2 unstable fixed points: x=0 and x=r/(r+1)
 # for r=2 non-periodic dynamics happens only for x0 irrational
+# for r=3 Certain points leave the interval [0,1] after a number of iterations. 
+#         The points that never leave I form a so-called non-wandering set (or better Julia set).
+#         This non-wandering set turns out to be a Cantor set
+
 Neq = 10
 Niter = 50
 traiett1 = iteration_tent(0.37, 0.3, Neq, Niter)
@@ -49,7 +53,7 @@ plt.show()
 
 # --------------
 # Raw bifurcation diagram: all the points with same intensity (tent map)
-# If you zoom in the region 1<r<1.
+# Zoom in the region 1<r<sqrt(2) to see the Julia set
 Neq = 1000
 Niter = 10000
 r_arr = np.linspace(0.2, 2.0, 1000, dtype = np.float32)
@@ -61,7 +65,7 @@ bif_data_flat = bif_data.flatten()
 
 fig_bif, ax_bif = plt.subplots(figsize=(6.2, 4.5))
 ax_bif.scatter(r_repeated, bif_data_flat, s=0.1)
-ax_bif.set_xlabel(r'$ r $', fontsize=15)
+ax_bif.set_xlabel(r'$ \mu $', fontsize=15)
 ax_bif.set_ylabel(r'$ x_i $', fontsize=15)
 ax_bif.grid(True)
 plt.show()
@@ -82,7 +86,7 @@ X, Y = np.meshgrid(r_arr, x_arr/1000)
 
 fig_bif, ax_bif = plt.subplots(figsize=(6.2, 4.5))
 ax_bif.scatter(X, Y, c=bif_data, cmap='Blues', s=0.1, alpha=0.8)
-ax_bif.set_xlabel(r'$ r $', fontsize=15)
+ax_bif.set_xlabel(r'$ \mu $', fontsize=15)
 ax_bif.set_ylabel(r'$ x_i $', fontsize=15)
 ax_bif.grid(True)
 plt.show()
@@ -98,7 +102,7 @@ bifurcation_image = bifurcation_diagram(np.float32(np.sqrt(2)/5), r_arr, Neq, Ni
 
 plt.figure(figsize=(10, 10))
 plt.imshow(bifurcation_image, extent=[0.2, 2.0, 0.0, 1.0], aspect='auto', cmap='Blues', vmin=0, vmax=255, origin='lower')
-plt.xlabel(r'$ r $', fontsize=15)
+plt.xlabel(r'$ \mu $', fontsize=15)
 plt.ylabel(r'$ x_i $', fontsize=15)
 plt.show()
 
@@ -220,7 +224,7 @@ plt.show()
 # Visualizing transition sequence (logistic map)
 # Try 4 values of r: 1, 3.1, 3.48, 3.995
 # For 0<=r<=1 one fixed point at x=0
-# For 1<r<=3 oe fixed point at x = (r-1)/r
+# For 1<r<=3 one fixed point at x = (r-1)/r
 # For 3<r<3.56995 the attractor is made of a discrete number of points (periodical doubling)
 # For r=4 from almost all initial conditions the iterate sequence is chaotic. 
 # Nevertheless, there exist an infinite number of initial conditions that lead to cycles
@@ -245,6 +249,7 @@ legend = ax_traj.legend()
 legend.set_title('Logistic map (r = 3.995)', prop={'size': 12, 'weight': 'bold'})
 ax_traj.grid(True)
 plt.show()
+
 
 
 
@@ -275,7 +280,7 @@ plt.show()
 # Raw bifurcation diagram: all the points with same intensity (logistic map)
 # Self-similarities:
 # Zooming around r=3.8494344 we should see a period-doubling approach to chaos 3,6,12 ..
-# Zooming around r=3.8284 we should see a period-tripling approach to chaos
+
 Neq = 1000
 Niter = 10000
 r_arr = np.linspace(0.2, 4.0, 2000, dtype = np.float32)
@@ -347,6 +352,7 @@ plt.show()
 
 
 
+
 # --------------
 # Entropy as function of r (logistic map)
 Neq = 1000
@@ -356,7 +362,7 @@ x_arr = np.arange(0, 1000, 1, dtype = np.int32)
 s_data = entropy(np.float32(np.sqrt(2)/5), r_arr, Neq, Niter, logistic_map)
 
 fig_entr, ax_entr = plt.subplots(figsize=(6.2, 4.5))
-ax_entr.scatter(r_arr, s_data[0], s=1)
+ax_entr.scatter(r_arr, s_data, s=1)
 ax_entr.set_xlabel(r'$ r $', fontsize=15)
 ax_entr.set_ylabel(r'$ Entropy $', fontsize=15)
 ax_entr.grid(True)
@@ -365,12 +371,24 @@ plt.show()
 
 
 # --------------
-# Probability as a function of x for r=4 (N.B. IT STRONGLY DEPENDS ON x0!!)
-fig_entr, ax_entr = plt.subplots(figsize=(6.2, 4.5))
-ax_entr.scatter(x_arr/1000, s_data[1], s=1)
-ax_entr.set_xlabel(r'$ x $', fontsize=20)
-ax_entr.set_ylabel(r'$ p_{i} $', fontsize=20)
-ax_entr.grid(True)
+# Probability as a function of x for r=4 
+Neq, Niter, Nstates = 1000, 1000000, 100
+
+mimmo = iteration_logistic(np.float32(np.sqrt(2)/5), 4, Neq, Niter)
+hist, bins = np.histogram(mimmo, Nstates, density=False)
+bin_widths = np.diff(bins)
+dens = hist / (Niter * bin_widths[0])
+
+arr_x = np.linspace(0.001, 0.999, 1000, dtype=np.float32)
+beta_arr = beta_function(arr_x)
+
+fig_histo, ax_histo = plt.subplots(figsize=(6.2, 4.5))
+ax_histo.bar(bins[:-1], dens, width=bin_widths, alpha=0.5, color='b', label='Logistic map (r = 4): Numerical distribution')
+ax_histo.plot(arr_x, beta_arr, color='r', label='Logistic map (r = 4): Expected curve')
+ax_histo.set_xlabel(r'$ x $', fontsize=20)
+ax_histo.set_ylabel(r'$ p_{i} $', fontsize=20)
+legend = ax_histo.legend()
+ax_histo.grid(True)
 plt.show()
 
 

@@ -5,12 +5,11 @@ Library of self-made functions needed for the final project exercises
 """
 
 import numpy as np
-from numba import njit
+from numba import njit, jit
 import matplotlib.pyplot as plt
 
 
 
-x_min, x_max = np.float32(0.0), np.float32(1.0)
 
 
 
@@ -193,9 +192,10 @@ def bifurcation_logistic(x0, r, n0, n):
 
 
 
-
+@jit(nopython=True)
 def bif_iter(x0, r, n0, n, h, w, Map):
     image = np.zeros((h, w), dtype = np.float32)
+    x_min, x_max = np.float32(0.0), np.float32(1.0)
     
     for i in range(w):
         
@@ -213,6 +213,10 @@ def bif_iter(x0, r, n0, n, h, w, Map):
 
 
 
+
+
+
+@jit(nopython=True)
 def non_zero_counting(matrix):
     N, M = matrix.shape
     nzc = np.count_nonzero(matrix, axis=0)
@@ -249,6 +253,7 @@ def bifurcation_image(x0, r, n0, n, Map):
 
 # pixel image
 def bifurcation_diagram(x0, arr_r, n0, n, Map):
+    x_min, x_max = np.float32(0.0), np.float32(1.0)
     width, height = len(arr_r), 1000
 
     # Initialize the image array
@@ -337,7 +342,6 @@ def lyapunov_logistic(x0, r, n0, n):
 
 
 def normalize_freq(matrix):
-    N, M = matrix.shape
     norm = np.sum(matrix, axis=0)
     result_matrix = matrix / norm
     result_matrix = result_matrix.astype(np.float32)
@@ -362,48 +366,60 @@ def log_freq(matrix):
     
 
 
+
+
 # entropy of a map
-def entropy(x0, r, n0, n, Map):
-    width, height = len(r), 1000
+#(For some unknown reason the entropy for r=4 is wrong: always concentrates 
+# around 1. And this because "bif_iter" at r=4 gives a trajectory that collapse
+# towards zero no matter how we choose x0)
+def entropy(x0, r, n0, n, Map, Nstates):
+    width, height = len(r), Nstates
     
     # Calculate (r,x) points frequencies
     image = bif_iter(x0, r, n0, n, height, width, Map)
+    #print(image)
             
     # Normalize frequencies
     p_i = normalize_freq(image)
+    #print(p_i)
     
     # Evaluate  -Sum_{i}(p_i * ln(p_i))  for all sampled values of r
     s_i = log_freq(p_i)
+    #print(s_i)
     S = - np.sum(s_i, axis=0)
     
-    return S, p_i[:, -1]
+    return S
+
+
+
+@njit
+def beta_function(x):
+    den = np.pi * np.sqrt(x * (1-x))
+    return 1/den
 
 
 
 
 
 
-def entropy_histogram(x, p, bin_width):
-    # Create bin edges based on the bin width
-    bins = np.arange(0, 1 + bin_width, bin_width)
-    
-    # Create an array to hold the histogram counts
-    histogram = np.zeros(len(bins) - 1, dtype = np.float32)
-    
-    # Populate the histogram bins with probabilities
-    for coord, prob in zip(x, p):
-        # Find the appropriate bin for each coordinate
-        bin_index = np.searchsorted(bins, coord, side='right') - 1
-        if 0 <= bin_index < len(histogram):
-            histogram[bin_index] += prob
-    
-    # Plot the histogram
-    fig_histo, ax_histo = plt.subplots(figsize=(6.2, 4.5))
-    ax_histo.bar(bins[:-1], histogram, width=bin_width, alpha=0.5, color='b')
-    ax_histo.set_xlabel(r'$ x $', fontsize=20)
-    ax_histo.set_ylabel(r'$ p_{i} $', fontsize=20)
-    ax_histo.grid(True)
-    plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
