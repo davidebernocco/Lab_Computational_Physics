@@ -11,6 +11,9 @@ import matplotlib.pyplot as plt
 
 
 
+# -----------------------------------------------------------------------------
+# STUDY OF THE TENT MAP
+# -----------------------------------------------------------------------------
 
 
 @njit
@@ -19,32 +22,6 @@ def tent_map(x, r):
         return r * x
     else:
         return r * (1 - x)
-
-
-
-@njit
-def sine_map(x, r):
-    return r * np.sin(np.pi * x)
-
-
-
-@njit
-def logistic_map(x, r):
-    return r * x * (1 - x)
-
-
-
-
-@njit
-def d_sine_map(x, r):
-    return np.pi * r * np.cos(np.pi * x)
-
-
-
-@njit
-def d_logistic_map(x, r):
-    return r * (1 - 2 * x)
-
 
 
 
@@ -64,6 +41,50 @@ def iteration_tent(x0, r, n0, n):
         trajectory[i + n0] = x 
         
     return trajectory
+
+
+
+
+@njit
+def bifurcation_tent(x0, r, n0, n):
+    accum = np.zeros((len(r), n), dtype = np.float32)
+    
+    
+    for i in range(len(r)):
+        
+        x = x0
+        
+        for _ in range(1, n0):
+            x = np.float32(tent_map(x, r[i]))
+
+        for k in range(n):
+            x = np.float32(tent_map(x, r[i]))
+            accum[i][k] = x
+            
+    return accum
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# STUDY OF THE SINE MAP
+# -----------------------------------------------------------------------------
+
+
+@njit
+def sine_map(x, r):
+    return r * np.sin(np.pi * x)
+
+
+
+@njit
+def d_sine_map(x, r):
+    return np.pi * r * np.cos(np.pi * x)
+
 
 
 
@@ -87,6 +108,50 @@ def iteration_sine(x0, r, n0, n):
 
 
 @njit
+def bifurcation_sine(x0, r, n0, n):
+    accum = np.zeros((len(r), n), dtype = np.float32)
+    
+    
+    for i in range(len(r)):
+        
+        x = x0
+        
+        for _ in range(1, n0):
+            x = np.float32(sine_map(x, r[i]))
+
+        for k in range(n):
+            x = np.float32(sine_map(x, r[i]))
+            accum[i][k] = x
+            
+    return accum
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# STUDY OF THE LOGISTIC MAP
+# -----------------------------------------------------------------------------
+
+
+@njit
+def logistic_map(x, r):
+    return r * x * (1 - x)
+
+
+
+
+@njit
+def d_logistic_map(x, r):
+    return r * (1 - 2 * x)
+
+
+
+
+@njit
 def iteration_logistic(x0, r, n0, n):
     trajectory =  np.zeros((n0 + n), dtype = np.float32)
     trajectory[0] = x0
@@ -101,7 +166,6 @@ def iteration_logistic(x0, r, n0, n):
         trajectory[i + n0] = x 
         
     return trajectory
-
 
 
 
@@ -128,48 +192,6 @@ def non_predicibility_vs_chaos(r, n):
 
 
 
-
-
-@njit
-def bifurcation_tent(x0, r, n0, n):
-    accum = np.zeros((len(r), n), dtype = np.float32)
-    
-    
-    for i in range(len(r)):
-        
-        x = x0
-        
-        for _ in range(1, n0):
-            x = np.float32(tent_map(x, r[i]))
-
-        for k in range(n):
-            x = np.float32(tent_map(x, r[i]))
-            accum[i][k] = x
-            
-    return accum
-
-
-
-@njit
-def bifurcation_sine(x0, r, n0, n):
-    accum = np.zeros((len(r), n), dtype = np.float32)
-    
-    
-    for i in range(len(r)):
-        
-        x = x0
-        
-        for _ in range(1, n0):
-            x = np.float32(sine_map(x, r[i]))
-
-        for k in range(n):
-            x = np.float32(sine_map(x, r[i]))
-            accum[i][k] = x
-            
-    return accum
-
-
-
 @njit
 def bifurcation_logistic(x0, r, n0, n):
     accum = np.zeros((len(r), n), dtype = np.float32)
@@ -190,6 +212,14 @@ def bifurcation_logistic(x0, r, n0, n):
 
 
 
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# IMAGING 
+# -----------------------------------------------------------------------------
 
 
 @jit(nopython=True)
@@ -213,9 +243,6 @@ def bif_iter(x0, r, n0, n, h, w, Map):
 
 
 
-
-
-
 @jit(nopython=True)
 def non_zero_counting(matrix):
     N, M = matrix.shape
@@ -223,7 +250,6 @@ def non_zero_counting(matrix):
     result_matrix = matrix * nzc
     result_matrix = result_matrix.astype(np.float32)
     return result_matrix
-
 
 
 
@@ -246,7 +272,6 @@ def bifurcation_image(x0, r, n0, n, Map):
     image = (image / max_value) * 255
     
     return image
-
 
     
 
@@ -294,6 +319,14 @@ def bifurcation_diagram(x0, arr_r, n0, n, Map):
 
 
 
+
+
+
+# -----------------------------------------------------------------------------
+# LYAPUNOV EXPONENTS
+# -----------------------------------------------------------------------------
+
+
 @njit
 def lyapunov_sine(x0, r, n0, n):
     l = np.zeros(len(r), dtype = np.float32)
@@ -313,6 +346,7 @@ def lyapunov_sine(x0, r, n0, n):
             l[i] += logarithm
             
     return l / n
+
 
 
 
@@ -341,11 +375,19 @@ def lyapunov_logistic(x0, r, n0, n):
 
 
 
+
+
+# -----------------------------------------------------------------------------
+# ENTROPY
+# -----------------------------------------------------------------------------
+
+
 def normalize_freq(matrix):
     norm = np.sum(matrix, axis=0)
     result_matrix = matrix / norm
     result_matrix = result_matrix.astype(np.float32)
     return result_matrix
+
 
 
 
@@ -364,7 +406,6 @@ def log_freq(matrix):
     return m_log_m
 
     
-
 
 
 
@@ -392,6 +433,7 @@ def entropy(x0, r, n0, n, Map, Nstates):
 
 
 
+
 @njit
 def beta_function(x):
     den = np.pi * np.sqrt(x * (1-x))
@@ -404,25 +446,9 @@ def beta_function(x):
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# -----------------------------------------------------------------------------
+# 2D HENON MAP
+# -----------------------------------------------------------------------------
 
 
 @njit
@@ -432,6 +458,7 @@ def Henon_map(r0, a, b):
     r[1] = b*r0[0]
     
     return r
+
 
 
 
@@ -453,6 +480,7 @@ def iteration_Henon(r0, a, b, n0, n):
 
 
 
+
 @njit
 def jacobian(r, a, b):
    J = np.zeros((2, 2), dtype=np.float32)
@@ -464,6 +492,8 @@ def jacobian(r, a, b):
    return J
 
 
+
+
 @njit
 def orthonormalize(v1, v2):
     U1 = v1
@@ -473,6 +503,8 @@ def orthonormalize(v1, v2):
     u1 = U1 / norm1
     u2 = U2 / norm2
     return u1, u2, norm1, norm2
+
+
 
 
 @njit
@@ -495,25 +527,5 @@ def Lyapunov_spectrum_2D(r0, a, b, n):
     
     return lambda1 / n, lambda2 / n
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

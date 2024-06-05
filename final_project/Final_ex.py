@@ -403,16 +403,23 @@ plt.show()
 
 # -------------------
 # Trajectory for fixed a and b
-
-r_init = np.asarray([0.0,0.0], dtype=np.float32)
-arr_henon = iteration_Henon(r_init, 1.4, 0.3, 10, 50)
+# For such parameters values, there are two fixed points, one pf which is:
+# ( (np.sqrt(609)-7)/28 , (3*(np.sqrt(609)-7))/280 )
+Neq = 100
+Niter = 1000
+r_init1 = np.asarray([0.0,0.0], dtype=np.float32)
+r_init2 = np.asarray([1/2,1/2], dtype=np.float32)
+arr_henon1 = iteration_Henon(r_init1, np.float32(1.4), np.float32(0.3), Neq, Niter)
+arr_henon2 = iteration_Henon(r_init2, np.float32(1.4), np.float32(0.3), Neq, Niter)
 
 fig_hen = plt.figure(figsize=(6.2, 4.5))
 ax_hen = fig_hen.add_subplot(111)
-ax_hen.scatter(arr_henon[0], arr_henon[1], marker='o', s=10, color='b', label='Chaotic trajectory')
-ax_hen.set_xlabel(r'$ x_i $', fontsize=15)
-ax_hen.set_ylabel(r'$ y_i $', fontsize=15)
-ax_hen.legend(loc='upper right', bbox_to_anchor=(1.2, 1.05))
+ax_hen.scatter(arr_henon1[0], arr_henon1[1], marker='o', s=5, color='b', label='r0 = (0,0)')
+ax_hen.scatter(arr_henon2[0], arr_henon2[1], marker='o', s=5, color='g', label='r0 = (1/2, 1/2)')
+ax_hen.set_xlabel(r'$ x_i $', fontsize=17)
+ax_hen.set_ylabel(r'$ y_i $', fontsize=17)
+legend = ax_hen.legend(loc=(0.02, 0.3))
+legend.set_title('Hénon map (a = 1.4, b = 0.3)', prop={'size': 12, 'weight': 'bold'})
 ax_hen.grid(True)
 plt.show()
 
@@ -421,5 +428,5 @@ plt.show()
 
 # ---------------
 # Estimation of Lyapunov exponents
-lyap_henon = Lyapunov_spectrum_2D(r_init, 1.4, 0.3, 1000000)
+lyap_henon = Lyapunov_spectrum_2D(r_init1, 1.4, 0.3, 1000000)
 
