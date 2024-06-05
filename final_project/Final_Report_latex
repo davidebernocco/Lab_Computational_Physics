@@ -1,0 +1,779 @@
+\documentclass{article}
+\pdfpagewidth
+\paperwidth
+\pdfpageheight
+\paperheight
+\usepackage[english]{babel}
+\selectlanguage{English}
+\usepackage{epsfig}
+\usepackage{fancyhdr} 
+\usepackage{amsmath,amssymb}
+\usepackage{amscd} 
+\usepackage[T1]{fontenc} 
+\usepackage[utf8]{inputenc} 
+\usepackage[usenames,dvipsnames]{xcolor}
+\usepackage{graphicx}
+\usepackage{color,listings}
+\usepackage{hologo}
+\frenchspacing 
+\usepackage{geometry}
+\usepackage{placeins}
+\usepackage{rotating}
+\usepackage{caption}
+\usepackage{enumitem}
+\setlength{\intextsep}{-2ex} % 
+\captionsetup{labelformat=empty, textfont=sl}
+\geometry{a4paper,tmargin=3cm,bmargin=3cm, lmargin=3cm,rmargin=2cm} 
+\textwidth16cm
+\textheight24cm
+\topmargin0mm
+\headheight0mm
+\headsep6mm
+\oddsidemargin0mm
+\evensidemargin0mm
+\newcommand{\RN}[1]{\textup{\uppercase\expandafter{\romannumeral#1}}}%
+\usepackage{amsmath}
+\usepackage{mathtools}
+\DeclareMathOperator{\Tr}{Tr}
+
+\makeatletter
+\DeclareRobustCommand*{\bfseries}{%
+   \not@math@alphabet\bfseries\mathbf
+   \fontseries\bfdefault\selectfont
+   \boldmath
+}
+\makeatother
+
+\begin{document}
+	\begin{titlepage}
+		\begin{center}
+			\textsc{\LARGE Università degli studi di Trieste}\\ 
+			[0.5cm]
+			\textsc{\Large Corso di laurea magistrale in Fisica della materia}\\
+			[12mm]
+			\begin{figure}[h!] 
+			\centering
+             \includegraphics[width=0.45\linewidth,height=7cm]{Logo_UniTs.jpg}
+            \end{figure}
+            \FloatBarrier\\
+            [12mm]
+				\line(1,0){350}\\
+			[5mm] 
+			\huge{\bfseries Laboratorio di Fisica Computazionale}\\
+				\line(1,0){150}\\
+			[1.2cm]
+			\textit{\Normalize{Final project}\\}
+			\textit{\Normalize{Chaotic motion of dynamical systems}}\\
+			[4cm]
+		\end{center}
+		\begin{flushright}
+			\textsc{\large Davide Bernocco\\}
+			Matricola s285296
+		\end{flushright}
+		\begin{flushright}
+			\textsc{\small Programming language used:\\}
+			Python
+		\end{flushright}
+	\end{titlepage}
+\tableofcontents\newpage
+
+
+
+\section{Introduction: dynamical systems and their main characteristics}
+Generally speaking, a \textit{dynamical system}\footnote{This brief introduction is mainly based upon the Wikipedia related pages} is any system in which the time evolution of a point in the space is formally described by a certain function that allows to determine what future states follow from the current state. Very often - and that is the case we will focus on - this evolution law is \textit{deterministic} (the alternative being a stochastic theory).
+
+The systems we will deal with here are \textit{non-linear}, that means the laws that describe the changes in variables over time are non-linear.
+
+Space and time could in principle be represented respectively by manifolds or simple sets and integer or real numbers. Here the attention will be posed on \textit{discrete time} systems where point in a closed set (to begin with, in 1D space) are mapped into another closed set following a certain \textit{difference equation}.
+
+
+
+\subsection{Attractors}
+In the context of dynamical systems, an \textit{attractor} is a set of states (in the state space) toward which the system tends to evolve, for certain initial conditions: points that get close enough to the attractor values remain close even if slightly disturbed.\\
+One of the simples examples of attractor is the \textit{fixed point}: given a certain function such a point is mapped into itself. However, non all the fixed points are attractors: as can be seen in Fig 1.1, A, B and C are all fixed point in the dynamics of the ball on the hill (i.e. they correspond to equilibrium states), but just A and C are attractors (i.e. they coincide with the two steady equilibrium states).
+
+\vspace{7mm}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=7cm, height=4.34cm]{hill_potential.png}
+\caption{Fig 1.1 An easy example of different kind of equilibrium points.}
+\label{fig:Fig 1.1}
+\end{figure}
+\vspace{7mm}
+
+We define the attractor's \textit{basin of attraction} the region of the phase space, over which iterations are defined, such that any point (any initial condition) in that region will asymptotically be iterated into the attractor. For a stable linear system, every point in the phase space is in the basin of attraction. However, in nonlinear systems, some points may map directly or asymptotically to infinity, while other points may lie in a different basin of attraction and map asymptotically into a different attractor;  other initial conditions may map directly into a non-attracting point.\\
+
+From the geometric point of view, an attractor can be a \textit{ single point}, a \textit{ finite set of points}, a \textit{curve}, a \textit{manifold} or even a "bizarre" set with fractal structure called \textit{strange attractor}. The trajectory of a dynamic system on the attractor does not have to satisfy any special constraint, except for remaining on the attractor forward in time; as a consequence, the trajectory can be periodic as well as non-periodic. \\
+
+In the following section we intend to study simple dynamical non-linear models described by difference equations that depend on a real parameter. The ultimate goal is to understand what happens after a large number of iteration: do the states converge to a certain value? Does the parameter play any role in establishing the long term dynamics?\\
+We anticipate here two fundamental aspects :
+
+\begin{itemize}
+    \item The same system can exhibit different kind of attractors depending on the starting parameter (See "bifurcation diagram")
+    \item Passing through all the allowed parameter spectrum we will mainly witness these asymptotic behaviours:
+        \begin{itemize}[label=-]
+            \item convergence to a single fixed point (period-1 orbit)
+            \item convergence to a finite number \textit{k} of points, visited in sequence (period-k orbit)
+            \item evolution into a potentially infinity number of points, visited with an irregular rate (chaotic regime) 
+        \end{itemize}
+\end{itemize}
+
+
+
+\subsection{(Deterministic) chaos}
+\textit{Deterministic chaos} is what makes, under certain conditions, non-linear deterministic models \textit{non predictable}. Stated in more concrete words: chaos means \textit{sensitive dependence of the systems by the initial conditions}. In a system characterized by the chaotic regime, two points infinitesimally close in the space will follow two trajectories that can be significantly different in the future.\\
+At this stage, it is worth emphasizing how chaos is conceptually different from randomness: a stochastic system, indeed, follows evolution laws that are not deterministic at all (see Monte Carlo processes)!\\
+
+What helps us into understanding how sensible the system is to the initial condition is the \textit{Lyapunov exponent}, defined as follows: given two starting points separated by the infinitesimal quantity $\Delta x_0$, after a certain number of iterations $n$ their corresponding trajectories will be diverging by a rate 
+
+\begin{equation}
+    |\Delta x_n| = |\Delta x_0| e^{\lambda n}
+\end{equation}
+
+where $\lambda$ is the Lyapunov exponent and measures how fast the two points will move away. In particular, if the exponent is positive, the separation between the trajectories grows exponentially and the onset of chaotic regime is established.\\
+In order to determine $\lambda$, we take the logarithm of eq (1) and noting that:
+
+\begin{equation}
+    \frac{\Delta x_n}{\Delta x_0} = \frac{\Delta x_1}{\Delta x_0} \frac{\Delta x_2}{\Delta x_1} ... \frac{\Delta x_n}{\Delta x_{n-1}}
+\end{equation}
+
+we can express $\lambda$ in the limit of $\Delta x_i \to 0$ (where the ratio between $\Delta x_{i+1}$ and $\Delta x_i$ can be written as derivative of the recursion function $f'(x_i)$):
+
+\begin{equation}
+    \lambda =  \lim\limits_{x \to \infty} \frac{1}{n} \sum_{i=0}^{n-1}\log{|f'(x_i)|}
+\end{equation}
+
+Since we are interested in the asymptotic behaviour of the system on the attractor, in order to provide the best estimation of the Lyapunov exponent\footnote{The same goes for other application we will see later on} the initial \textit{transient sequence} of points is ignored within the above sum (typically few hundreds of points are enough).
+
+\vspace{50mm}
+$*$ We end this introductory chapter with an important practical note: considering that we are dealing with systems whose dynamic can strongly depend on the initial condition, it is clear that even typical \textit{roundoff} computer errors will strongly influence the evolution on the long run. Now more than ever, we must be aware of the limits of our simulation!
+
+
+
+
+
+
+\newpage
+\section{Simple One-Dimensional non-linear maps}
+We use these three dynamical models to show how \textit{complex behaviour} (like chaos!) can even arise from very simple non-linear systems. After analyzing the peculiar features case by case, we will eventually pass to study a couple of amazing properties they share.
+
+\subsection{Tent map}
+The \textit{tent map} is a piece-wise (and hence non-linear in its whole domain) recurrence relation defined as
+
+\begin{equation}
+    x_{n+1} \equiv f_{\mu}(x_n) =
+    \begin{cases}
+              \mu x_n & \text{if} \hspace{4mm} 0 \leq x \leq 1/2 \\
+              \mu (1-x_n) & \text{if} \hspace{4mm} 1/2< x \leq 1
+            \end{cases} 
+\end{equation}
+
+where $\mu$ is taken to be a real positive parameter. In particular we are going to analyze the case of $\mu \in [0,1]$, so that the interval $[0,1]$ is mapped into itself.\\
+
+As for the following maps we shall study later, we begin our analysis by looking at the bifurcation diagram of the map. This will allow to get a general sense of the map's behaviour as function of the parameter. In fig. 2.1 are indeed shown the \textit{asymptotic} points visited by the system for a series of values of $\mu$, after having neglected the first transient sequences (Here $n_0 = 10^3$, $n = 10^5$ and $x_0 = \sqrt{2}/5$).\\
+It can be demonstrated that between $\mu = 1$ and $\mu = 2$ the diagram is bounded from above by $x_i = \mu / 2$ and from below by $x_i = \mu - \mu^{2} / 2$.
+
+\vspace{7mm}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=11.3cm, height=7cm]{Tent_map/tent_bifurcation.png}
+\caption{Fig 2.1 Bifurcation diagram for the tent map. Darker points are visited more frequently}
+\label{fig:Fig 2.1}
+\end{figure}
+\vspace{10mm}
+
+We now deeper investigate what happens more specifically for certain values of the parameter:
+
+\begin{itemize}
+    \item \textbf{$0 < \mu < 1$:}\\
+        A zoom of the asymptotic behaviour around $\mu = 1$ is shown in fig 2.2.a, where we can notice that for $\mu < 1$, the starting points is eventually iterated toward naught, i.e. the system has got \textit{one single fixed point} in $x=0$. This can be better appreciated looking at fig. 2.2.b, where is plotted the trajectory of two points, close to each other, for a given value of the parameter smaller than one.
+
+        \begin{figure}[]
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_zoom3.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_mu_0_3.png} }}%
+            \caption{Fig. 2.2 Tent map: zoom of the bifurcation diagram a) around $\mu = 1$.\;\ b) Trajectories for two close starting points with $\mu = 0.3$.}%
+            \label{fig:Fig 2.2}%
+        \end{figure}
+        
+    \item \textbf{$\mu = 1$:}\\
+        Having in mind the magnified picture of the bifurcation diagram in 2.2.a, we notice as well an abrupt spike that appears in correspondence of $\mu = 1$. It seem to suggest that for value of the parameter \textit{all the $x \leq 1/2$ are fixed points of the system}. Thus, if we plotted the trajectories of a couple of starting points within this subset, they would be constant. And this is exactly what we observe in fig. 2.3.
+
+        \begin{figure}
+        \centering
+        \includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_mu_1.png}
+        \caption{Fig 2.3 Tent map: Trajectories for two close starting points less than 1/2 with $\mu = 1$.}
+        \label{fig:Fig 2.3}
+        \end{figure}
+        
+    \item \textbf{$1 < \mu \leq \sqrt{2}$:}\\
+        If $\mu$ is greater than 1\footnote{In fact what we state here holds as well for the regions of the parameter spectrum analyzed later} the system has \textit{two fixed points}, one at \textit{0}, and the other at \textit{$\mu / (\mu + 1)$}. \textit{Both} fixed points are \textit{unstable}, i.e. a value of x close to either fixed point will move away from it, rather than towards it. The red and orange lines in fig. 2.4.a are the asymptotic trajectories in the direction of the two fixed points for $\mu = 1.07$.
+        
+        In addition to this feature, in the considered region the system shows a peculiar chaotic regime, mapping a set of intervals (containing infinite points!) between the extremes $\mu - \mu^{2} / 2$ and $\mu / 2$ to themselves. This set of intervals is called the \textit{Julia set} of the map and is indeed defined as the smallest invariant subset of the real line under a certain map map. 
+        
+        For the fixed value of $\mu = 1.07$, fig. 2.4.b,c,d show deeper magnification of the bifurcation diagram, from which we understand the Julia set is there made up of eight different subsets. And it is among the values enclosed in these separate subsets that the trajectory of two close starting points oscillate. Indeed, if we looked closely at the evolution path plotted in green and blue in fig 2.4.a, we would recognize a \textit{chaotic period-8 pattern} in which each subset of the Julia set is sequentially visited, each time in a \textit{distinct} point. In this plot the two trajectories start to differ from one another just slightly, but we expect them to diverge more evidently on a larger number of iteration: the extent to which the chaos afflict a system under a certain condition is well explained by the concept of Lyapunov exponent we will evaluate soon for the tent map.\\ 
+        
+        \begin{figure}
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_mu_1_07.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_zoom1.png} }}%
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_zoom2up.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_zoom2down.png} }}%
+            \caption{Fig. 2.4 Tent map: a) trajectories for different initial points for $\mu = 1.07$. Follows a zoom of the bifurcation diagram b) of the two branches visible in $(1,\sqrt{2}]$, and further zooms on the c) upper part and d) the lower one.}%
+            \label{fig:2.4}%
+        \end{figure}
+        
+    \item \textbf{$\sqrt{2} < \mu < 2$:}\\
+        If $\mu$ is greater than the square root of 2, the invariant intervals we have just described merge, and the Julia set becomes the whole interval from $\mu - \mu^{2} / 2$ to $\mu / 2$ (see bifurcation diagram).\\
+        Now the interval $[\mu - \mu^{2} / 2, \mu / 2]$ contains \textit{both periodic and non-periodic points}, with all of the orbits that appear that are unstable. In particular, orbits with longer lengths appear as $\mu$ increases. In fig. 2.5 is well evident the onset of the chaotic regime for $\mu = 3/2$, as well the two predicted unstable fixed points at $0$ and $3/5$.
+
+        \begin{figure}
+        \centering
+        \includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_mu_1_5.png}
+        \caption{Fig 2.5 Tent map: Trajectories for different initial points for $\mu = 3/2$.}
+        \label{fig:Fig 2.5}
+        \end{figure}
+        
+    \item \textbf{$ \mu = 2$:}\\
+        For $\mu = 2$ the system maps the interval $[0,1]$ onto itself. Beside the unstable fixed points in $0$ and $2/3$ now there are an infinite number of \textit{periodic points with every orbit length} within this interval, \textit{as well as non-periodic points} that lead to chaotic sequences. 
+
+        We will thoroughly investigate this specific case when we will talk about the logistic map in the next section, revealing the existence of a \textit{topological conjugacy} between the two maps, according to which their behaviours are identical under iteration. Anyway, by now we limit ourselves to check the general properties, studying the trajectories of different points. In fig. 2.6.a are shown the time series for four specific cases in which the asymptotic trajectories should lead to an unstable fixed point or to a periodic cycle of finite length (3 here). In fig. 2.6.b, instead, are reported the time series for two infinitesimally close starting points for which a chaotic behaviour is expected.
+
+        \begin{figure}[]
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_mu_2fixed.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_mu_2chaos.png} }}%
+            \caption{Fig. 2.6 Tent map with $\mu = 2$: time series for points with expected asymptotic a) periodic behaviour or b) chaotic.}%
+            \label{fig:Fig 2.6}%
+        \end{figure}
+
+        Beside the accordance with what expected, there is one detail that strikes: after approximately $23$ iteration \textit{all} the trajectories deviate to zero. How can this be possible? Why this did not happen before: are we in front of a special case? The short answer is yes: it seems we are experiencing an unfortunate interplay between computer numerics and dynamical systems.\\
+        As Hans Rugh points out in answering the question "Is this characteristic of Tent map usually observed?" on the the Stackexchange forum: in a binary representation the signicand part comes with a certain number of bits. Multiplying by two ($\mu = 2$!) - and mapping the result back into $[0,1]$ - shifts those bits, and the last bit becomes zero. When the significand at the starts is represented by 23 bits (as for the \texttt{float32} type we use) it becomes identically zero after 23 iterations.
+        
+    \item \textbf{$ \mu > 2$:} (out of the studied interval)\\
+    We mention by passing that when $\mu > 2$ the tent map's \textit{Julia set} becomes \textit{disconnected}, and breaks up into a \textit{Cantor set} within the interval $[0,1]$, this latter being defined as a closed, totally disconnected and perfect (i.e. without any isolated point) set. \\
+    The Julia set still contains an infinite number of both non-periodic and periodic points (including orbits for any orbit length), but almost every point within $[0,1]$ will now asymptotically diverge towards minus infinity. 
+    
+    It is through the example of the canonical Cantor set\footnote{Formally obtained by successively deleting middle thirds from subsets of the unit line}, corresponding to the Julia set of the tent map for $\mu = 3$, that we can first introduce the concept of \textit{fractal}. Fractals emerge as peculiar structures of dynamic systems in chaotic regime, and roughly speaking they are geometrical objects (a set in this case) that show \textit{self-similarity}: ideally, at any magnification there is a smaller piece of the same object that is similar to the whole.
+    
+\end{itemize}
+
+
+
+\subsubsection{Lyapunov exponent}
+Because of its simple form (it is piece-wise linear), the evaluation of the Lyapunov exponent for the tent map is straightforward:
+
+\begin{equation}
+    \lambda =  \lim\limits_{x \to \infty} \frac{1}{n} \sum_{i=0}^{n-1}\log{|f'(x_i)|} =  \lim\limits_{x \to \infty} \frac{\log{\mu}}{n} \sum_{i=0}^{n-1}1 = \log{\mu}
+\end{equation}
+
+The result is plotted in fig. 2.7. For $\mu < 1$ there is no dependence on initial conditions: the exponent is negative and so two infinitely close starting points will evolve remaining close to each other. It is just for $\mu > 1$ that the exponent becomes positive, signaling the onset of the chaotic regime. Since the growth is sub-linear, values of the parameter close enough to $1^+$ (as was $1.07$ in one of the previous examples) will result in a very slow divergence of neighboring trajectories; it is just with larger $\mu$ that the difference becomes appreciable within few iterations.
+
+\begin{figure}
+\centering
+\includegraphics[width=7.5cm, height=5cm]{Tent_map/tent_lyapunov.png}
+\caption{Fig 2.7 Tent map: Lyapunov exponent for different values of $\mu$.}
+\label{fig:Fig 2.7}
+\end{figure}
+
+
+
+
+
+
+
+\newpage
+\subsection{Logistic map}
+The next example we are going to analyze is the non- linear \textit{logistic map}, defined as:
+
+\begin{equation}
+    x_{n+1} \equiv f(x_n) = r x_n (1 - x_n)
+\end{equation}
+
+where usually the $r$ values of usual interest are the ones in $[0, 4]$ so that the $x_i$ remains in $[0, 1]$.\\
+
+The resulting bifurcation diagram is shown in fig. 2.8 (Here $n_0 = 10^3$, $n = 10^5$ and $x_0 = \sqrt{2}/5$)
+
+\vspace{7mm}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=11.3cm, height=7cm]{Logistic_map/logistic_bifurcation.png}
+\caption{Fig 2.8 Bifurcation diagram for the logistic map. Darker points are visited more frequently}
+\label{fig:Fig 2.8}
+\end{figure}
+\vspace{10mm}
+
+As done for the tent map, we identify some regions of interest in the parameter spectrum and study them in more detail:
+
+\begin{itemize}
+    \item \textbf{$0 \leq r \leq 1$:}\\
+        For such range of the parameter, all the starting point in the considered interval $[0, 1]$ are eventually mapped into the \textit{fixed point} $x = 0$. Fig. 2.9 shows a zoom of the diagram around $r = 1$ along with the time series of two infinitesimally close starting points for $r = 0.9$.
+
+        \begin{figure}[]
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom1.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_r_0_9.png} }}%
+            \caption{Fig. 2.9 Logistic map: zoom of the bifurcation diagram a) around $r = 1$.\;\ b) Trajectories for two close starting points with $r = 0.9$.}%
+            \label{fig:Fig 2.9}%
+        \end{figure}
+        
+    \item \textbf{$1 < r \leq 3$:}\\
+        For $r > 1$, as in the case of the tent map, the system has an \textit{unstable fixed point} in $x_i = 0$ and a \textit{stable fixed point} in $x_i = (r-1)/r$.\\
+        Take as a reference fig. 2.9.a: if we pick $r = 6/5 = 1.2$ and $x_0 > 0$ we expect the system will asymptotically tends toward the \textit{non-zero fixed point}. Clearly, on the other hand, setting exactly $x_0 = 0$ will lead to the "trivial" trajectory on the unstable fixed point. The time series plot in fig. 2.10 confirm our expectation: $x_{attractor} = 1/6$.
+
+        \begin{figure}
+        \centering
+        \includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_r_1_2.png}
+        \caption{Fig 2.10 Logistic map: Trajectories for a couple of different points with $r = 1.2$.}
+        \label{fig:Fig 2.10}
+        \end{figure}
+        
+    \item \textbf{$3 < r \leq 1 + \sqrt{6}$:}\\
+        Zooming around $r = 3$ in the diagram (fig. 2.11.a) we notice a \textit{bifurcation} occurs there, giving rise to a \textit{period-2 cyclic attractor} on which system trajectories asymptotically move. The values of the two points of interest depend on the parameter and can be shown they correspond to: 
+
+        \begin{equation}
+            x_{\pm} = \frac{1}{2r}\left( r+1 \pm \sqrt{(r-3)(r+1)} \right)
+        \end{equation}
+
+        Fig. 2.11.b reports the time series that lead both to the unstable fixed points in $x_i = 0, (r-1)/r$ and to the periodic oscillation when $r = 16/5 = 3.2$. The two numerical values agree with the predicted ones.
+        
+        \begin{figure}[]
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom2.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_r_3_2.png} }}%
+            \caption{Fig. 2.11 Logistic map: zoom of the bifurcation diagram a) around $r = 3$.\;\ b) Trajectories for some different starting points with $r = 3.2$.}%
+            \label{fig:Fig 2.11}%
+        \end{figure}
+        
+    \item \textbf{$1 + \sqrt{6} < r \lesssim 3.569946$:}\\
+        Moving on in the parameter spectrum, each of the two previous branches that originated at $r=3$ keeps bifurcating more and more often, giving rise to a \textit{periodic doubling cascade} that grows until the threshold value of $r \approx 3.569946$. In each of these sub regions of the spectrum the trajectories of all the starting points (excluded the usual two unstable fixed points) asymptotically end moving with periodic oscillations on an \textit{attractor} made of  4, 8, 16,.. values. This peculiar behaviour can be clearly seen in fig. 2.12.\\
+        The ratio between the lengths of two following bifurcation intervals is well approximated by the so called \textit{Feigenbaum constant} $\delta = 4.669202..$.
+        
+        \begin{figure}
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom3.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom3a.png} }}%
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom3b.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom3c.png} }}%
+            \caption{Fig. 2.12 Logistic map: a) zoom of the bifurcation diagram for $1 + \sqrt{6} < r \lesssim 3.569946$ and b), c), d) further magnifications in correspondence of different branches.}%
+            \label{fig:2.12}%
+        \end{figure}
+        
+    \item \textbf{$3.569946 \lesssim r < 4$:}\\
+        The approximate value of $r=3.569946$ marks the end of the previous period-doubling cascade and the \textit{onset of chaotic regime} so that \textit{almost all} initial conditions result in a non-periodic trajectory. This simply means that, given a certain $r \in [3.569946, 4]$, from an uncountably infinite number of initial conditions in $[0, 1]$ the iterate sequence is chaotic. On the other hand, there exist as well a countable infinite number of starting points that lead to cycles of length k for all integers k > 0 that correspond to \textit{unstable attractors}. These cycles can be found imposing that the k-times iterated $f_r(x_i)$ equals $x_i$. \footnote{So solving $f(f(x_i)) = x_i$ gives the period-2 orbit(s); at the same way $f(f(f(x_i))) = x_i$ gives the period-3 orbit(s), etc}\\
+
+        In fig. 2.13.b we can observe the time series for $r = 3.6$ of three different initial points: the first one being one of the two values of the period-2 cycle (found with \texttt{Mathematica}) and the last two being the usual unstable fixed points. The resulting behaviour match with our expectations, even though after a certain point both the cycle and the non-zero fixed point trajectories go chaotic. This is nothing but the evidence of how unstable are these trajectories and so how strong is the dependence of the system on the initial conditions. while running the code, as soon as the computer makes a significant approximation on the iterated points, this propagates until it reaches a significant deviation from the expected values. \\
+        From fig. 2.13.a we note that for $r = 3.6$ these chaotic fluctuations can just take values on two disconnected subsets that make up the corresponding Julia set. \\
+        The fact that strips or "windows" of periodicity appear every now and then within this chaotic spectrum region will be argument of the following analyzed case.
+
+        \begin{figure}
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom4.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_r_3_6.png} }}%
+            \caption{Fig. 2.13 Logistic map: a) zoom of the bifurcation diagram in the "chaotic region".\;\ b) Trajectories for a couple of different points with $r = 3.6$.}%
+            \label{fig:Fig 2.13}%
+        \end{figure}
+          
+    \item \textbf{Periodic window: $ 1+\sqrt{8} \leq r \lesssim 3.854078$:}\\
+        One feature that enriches the picture of the peculiar behaviour of the logistic map is the presence, within the chaotic parameter region, of several \textit{periodic windows} each with its own rout back to chaos. The largest strip is the one we zoomed in in fig. 2.14 that shows period-doubling approach to chaos, but this time with periods 3, 6, 12, ...
+
+        \begin{figure}
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom4a.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom4b.png} }}%
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom4c.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_zoom4d.png} }}%
+            \caption{Fig. 2.14 Logistic map: a) zoom of the bifurcation diagram in the "chaotic region" with the largest \textit{stability island} encircled. Follow the magnifications b), c), d) in correspondence of the three branches.}%
+            \label{fig:3.7}%
+        \end{figure}
+    
+    \item \textbf{$r = 4$:}
+        This particular scenario gives us the opportunity to provide a more profound interpretation of the statement that in the logistic map dynamics with chaotic regime \textit{almost all} initial conditions result in a non-periodic trajectory. Furthermore, we will clarify the aforementioned link between the dynamics of the tent map with $\mu = 2$ and the one of the logistic map with $r = 4$.\\
+
+         The mathematical structure that plays a key role in this explanation is the \textit{topological conjugacy}. In particular, two continuous functions $f$ and $g$ are said to be topologically conjugate if there exists a \textit{homeomorphism} that will conjugate the one into the other; that is, the continuous function that maps $f$ into $g$ is injective, then bijective, with its inverse continuous too. In other words, topological conjugation is a "change of coordinates" in a topological sense.\\
+         This feature turns out to be important in the study of iterated functions and more generally of dynamical systems, since, if the dynamics of one iterative function can be determined, then that for a topologically conjugate function follows trivially.\\
+         
+         More specifically, we can exploit the conjugacy relationship between the logistic map case with $r = 4$ and the so called "dyadic transformation" 
+
+        \begin{equation}
+            y_{n+1} = 
+            \begin{cases}
+                y_n \hspace{4mm} \text{if} \hspace{2mm} x \leq 1/2 \\
+                1 - y_n \hspace{4mm} \text{if} \hspace{2mm} x > 1/2
+            \end{cases}
+        \end{equation}
+
+         to find cycles of any length k. They can firstly be found in the dyadic map\footnote{Comfortably done using the binary notation} and then translated into the corresponding logistic cycles ${x_1, x_2, .., x_k}$ through the homomorphism:
+
+         \begin{equation}
+             x_n = \sin^{2}{(2 \pi y_n)}
+         \end{equation}
+         
+        Now, since the values among which the periodic k-cycles of the dyadic map oscillates are fractions, we can conclude that, when mapped back to the logistic dynamics, these points form a countably infinite set of numbers in $[0, 1]$. In turn, this demonstrates that "almost all" initial conditions of the logistic $r = 4$ map lead to the non-periodicity of chaos, with all of the finite-length cycles that are unstable.\\
+
+        If we now look at the tent $\mu = 2$ map, it can be demonstrated there exist an homeomorphism between it and the logistic $r = 4$ map. Denoting the logistically evolving variable and the tent evolving variable respectively as $x_n$ and $z_n$:
+
+        \begin{equation}
+             z_n = \frac{2}{\pi} \arcsin{(\sqrt{x_n})}
+         \end{equation}
+
+        Thus, all what has just be said here about the logistic $r = 4$ case can be directly applied to the tent $\mu = 2$ map. All the finite length cycles that can be found for the dyadic dynamics can be continuously mapped into the logistic dynamics and then to the tent dynamics, making their system properties equivalent within a proper change of variables.\\
+        In the light of the above, we now can explain why we chose those specific values when plotting different trajectories in the case of the tent $\mu = 2$ map. The values that gave a periodic cycle came from fractional numbers that had been mapped into the logistic function and then eventually mapped to the tent map. The time series for the corresponding initial condition in the logistic $r = 4$ dynamics are shown in fig. 2.15, where after a certain number of steps the unstable cycles are driven chaotic because of rough computer approximations.
+
+        \begin{figure}[]
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_r_2fixed.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_r_2chaos.png} }}%
+            \caption{Fig. 2.15 Logistic map with $r = 4$: time series for points with expected asymptotic a) periodic behaviour or b) chaotic.}%
+            \label{fig:Fig 2.15}%
+        \end{figure}
+        
+        The magnitude of these deviations even at a low number of iteration sets a subtle practical limit to how precise we can be in finding the k-periodic orbits. On one side, the numerical solutions $[5]$ to the equations of the kind $f_r(f_r(...f_r(x_i))..) = x_i$ are naturally characterized by a computational error, which, propagating through the iterative algorithm from an inaccurate staring point, can seriously affect the precision of the trajectory. On the other, beginning from a simple fraction within the dyadic dynamics and then mapping it into a periodic point of another system through a series of functions brings with it issues on how this functions are numerically encoded!
+
+            
+\end{itemize}
+
+
+\subsubsection{Lyapunov exponent}
+Contrary of what happened for the tent map, here the computation of the Lyapunov exponent cannot be done analytically. In order to provide the best estimation, a simple numerical algorithm has been written, based upon the following relation:
+
+\begin{equation}
+    \lambda =  \lim\limits_{x \to \infty} \frac{1}{n} \sum_{i=0}^{n-1}\log{|f'(x_i)|} =  \lim\limits_{x \to \infty} \frac{1}{n} \sum_{i=0}^{n-1} \log{|r - 2rx_i|}
+\end{equation}
+
+The result is plotted in fig. 2.16, where the final part has been magnified in order to appreciate its finer structure. For $r \lesssim 3.569946$ $\lambda$ is non-positive, showing regions in which it is more negative than the others: the resulting dynamics is stable (in the sense that there is no dependence on initial conditions), with the presence of particularly stable configuration.\\
+When the threshold value of $r = 3.569946$ is passed, $\lambda$ becomes generally positive with few negative deflections: this coincides to the characteristic chaotic regime we described for the logistic dynamics, along with the occurence of the typical islands of stability. 
+
+\vspace{10mm}
+\begin{figure}[h!]
+\centering
+\subfloat
+{{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_lyapunov.png} }}%
+\qquad
+\subfloat
+{{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_lyapunov_zoom.png} }}%
+\caption{Fig. 2.16 Logistic map: a) Lyapunov exponent for different values of $r$ with b) a zoom on the last part of the parameter spectrum. }%
+\label{fig:Fig 2.16}%
+\end{figure}
+
+
+
+
+
+\newpage
+\subsection{Chaos and randomness}
+When we first talked about deterministic chaos back in the introduction, we pointed out how a chaotic system results profoundly different from a stochastic one. We would like now to provide a graphical and qualitative demonstration of this. \\
+For this purpose, we took a sequence of random (uniformly) values along with the same number of points from the iteration of the logistic $r = 3.995$ map. Then we plotted the two series of points we built out of these two sequences by grouping them by three. The outcome is shown in fig. 2.17.
+
+\vspace{5mm}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=11.3cm, height=8cm]{Logistic_map/Chaos_vs_Randomness.png}
+\caption{Fig 2.17 A random sequence of $N$ points and a sequence of $N$ iterated points associated to a logistic system in chaotic regime are plotted sequentially in group of three as 3D coordinates of $N/3$ points}
+\label{fig:Fig 2.17}
+\end{figure}
+\vspace{5mm}
+
+The difference is due to the fact that in a chaotic system described by a \textit{deterministic} dynamics, within a certain number of iteration determined by the available numerical precision, from each "visited" point we are able to establish the following ones. Therefore, what emerges when plotting the sequence in a 3d space is a well defined continuous trajectory, direct consequence of this finite-range correlation typical of chaotic systems.
+
+
+
+
+
+\subsection{States likelihood\footnote{From Wikipedia "Logistic map - chaos and the logistic map"} and entropy\footnote{From "An introduction to computer simulation methods" by Gould, Tobochkin and Christian (ch 6)}}
+If it is true that chaos is not randomness, it is often possible, however, to make precise and accurate statements about the likelihood of a future state in a chaotic system. \\
+Generally speaking, given a dynamical system - may it be in chaotic regime or not -, we can define a \textit{probability measure} that gives the long-term proportion of time spent by that system in the various regions of its Julia set.\\
+
+Let's focus our attention on the case of the logistic $r = 4$ map with starting point in $[0,1]$. Clearly, if we pick $x_0$ in the subset of the of all the countably infinite points that give rise to unstable periodic-k orbits, we would get in principle k different spikes in the spatial probability distribution. On the other hand, if $x0$ is chosen among those uncountably infinite points that eventually bring to chaotic dynamics, we expect a more continuous shape in the spatial probability distribution. In particular, it can be demonstrated that in this case the probability measure corresponds to the beta distribution with parameters $a = 1/2$ and $b = 1/2$:
+
+\begin{equation}
+    p(x) = \frac{1}{\pi \sqrt{x (1-x)}}
+\end{equation}
+
+After having launched the code, the visited points are sorted into subintervals of $[0,1]$ of fixed width of $0.01$: the relative frequencies the trajectory falls into each of these bins provide a numerical estimation of the probability $p(x_i)dx$. In fig. 2.18 is shown what we got for a run with $x_0 = \sqrt{2}/5$, along with the expected theoretical trend: the agreement is satisfactory and that is enough for the qualitative analysis we intended to present. 
+
+\begin{figure}
+\centering
+\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_prob_r4.png}
+\caption{Fig 2.18 Logistic map ($r = 4$): probability distribution of visited points }
+\label{fig:Fig 2.18}
+\end{figure}
+
+This simple example gave us the opportunity to enhance a peculiar feature about dynamical systems that has an important impact on practical problems: even if we know very little about the initial state of a certain chaotic system, we can still say something about the distribution of states arbitrarily far into the future, and use this knowledge to make previsions based on the state of the system.\\
+
+There is a quantity that allows to get an overall sense of how many of the available states are effectively visited by a system and in which extent: the \textit{entropy}. However, since we are now working in a context different from the one in which this concept has been originally developed, the quantity we intend to study will not correspond to the usual thermodynamic entropy. In particular, given a certain number of available states $i$ with $i = 1,.., N$ and the corresponding probability (or relative frequency!) of the system of being in the $i-th$ state, we define the entropy as:
+
+\begin{equation}
+    S = - \sum_{i}p_i \ln{(p_i)}
+\end{equation}
+
+Exploiting the same algorithmic procedure used above for the probability distribution, and summing up the amount $- p_i \ln{(p_i)}$ over evolution paths for the entire parameter spectrum, we get something like fig. 2.19.a for the logistic map ($n_0 = 10^3$, $n = 10^5$ and $x_0 = \sqrt{2}/5$). 
+
+\vspace{7mm}
+\begin{figure}[h!]
+\centering
+\subfloat
+{{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_entropy.png} }}%
+\qquad
+\subfloat
+{{\includegraphics[width=7.5cm, height=5cm]{Logistic_map/logistic_entropy_zoom.png} }}%
+\caption{Fig. 2.19 Logistic map: a) entropy for different values of $r$ with b) a zoom on the last part of the parameter spectrum, where points corresponding to different periodic doubling sequence are encircled. }%
+\label{fig:Fig 2.19}%
+\end{figure}
+\vspace{7mm}
+
+For $0 \leq r \leq 3$ the entropy is \textit{null}: in fact, from the starting point we chose, the long-run trajectory tends to settle to \textit{one single fixed point}, that is $x= 0$ for $0 \leq r \leq 1$ and $x= (r-1)/r$ for $1 < r \leq 3$: this results in the smallest entropy value possible, zero.\\
+On the other hand, a zoom on the final part shows in grater detail the presence of two distinguishable series of \textit{plateaus} of decreasing width but increasing entropy (fig. 2.19.b). A closer look at the parameter region in which they occur, at the ratios between the width of two of these following intervals\footnote{Approximately $4$}, as well as at their entropy values\footnote{In particular: $0.69 \approx \ln{2}$, $1.39 \approx \ln{4}$, $2.08 \approx \ln{8}$ and $2.77 \approx \ln{16}$ for the "red series". $1.10 \approx \ln{3}$ and $1.79 \approx \ln{6}$ for the "orange series"}, suggests these plateaus correspond to the \textit{period doubling} cascades that characterize the bifurcation diagram both in $3 < r \lesssim 3.569946$ and in the stability island at $1+\sqrt{8 \leq r \lesssim 3.854078}$.\\
+For $r > 3.569946$, a part from inflections related to the emergence of particularly stable cyclic orbits within a stability island, the entropy seems to disorderly grow up to an asymptotic value of $S \approx 7$. This fact can be interpreted as the tendency of a dynamical system in chaotic regime to evolve towards a \textit{maximal entropy} state $S_{max} = - \ln{\frac{1}{N}}$ where in principle all the available states\footnote{Here the run was made dividing the unitary interval into $N=10^3$ parts. Indeed $- \ln{\frac{1}{N}} \approx 6.9$ } are visited with the same frequency.
+
+
+
+
+
+
+
+
+\newpage
+\subsection{Sine map}
+The last 1D non-linear map we review is the \textit{sine map} ($c$ is a real parameter):
+
+\begin{equation}
+    x_{n+1} \equiv f(x_n) = c \sin{(\pi x_n)}
+\end{equation}
+
+We focus our attention for the cases in which $c \in [0,1]$ so that $x_i$ is limited in the usual interval $[0,1]$.\\
+
+The corresponding bifurcation diagram is shown in fig. 2.20 (Here $n_0 = 10^3$, $n = 10^5$ and $x_0 = \sqrt{2}/5$)
+
+\vspace{7mm}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=11.3cm, height=7cm]{Sine_map/sine_bifurcation.png}
+\caption{Fig 2.20 Bifurcation diagram for the sine map. Darker points are visited more frequently}
+\label{fig:Fig 2.20}
+\end{figure}
+\vspace{10mm}
+
+The resemblance with the logistic map diagram is impressive. For sake of brevity, unlike we did before, we will not study the different behaviours that arise when moving on the parameter spectrum. However, all you need to know is that, a part from a proper magnitude scaling, we would obtain \textit{identical qualitative dynamics}.\\
+This similarity extend to the Lyapunov exponent too, as can be seen in fig. 2.21.\\
+
+\vspace{7mm}
+\begin{figure}[h!]
+\centering
+\subfloat
+{{\includegraphics[width=7.5cm, height=5cm]{Sine_map/sine_lyapunov.png} }}%
+\qquad
+\subfloat
+{{\includegraphics[width=7.5cm, height=5cm]{Sine_map/sine_lyapunov_zoom.png} }}%
+\caption{Fig. 2.21 Sine map: a) Lyapunov exponent for different values of $c$ with b) a zoom on the last part of the parameter spectrum. }%
+\label{fig:Fig 4.2}%
+\end{figure}
+\vspace{7mm}
+
+How can be possible that two distinct iteration functions give rise to such similar behaviours? In what follows, we are going to answer this fascinating question analysing a seminal paper published by Metropolis, Stein and Stein through which we will introduce the pivotal role of \textit{universality}.
+
+
+
+
+
+\newpage
+\subsection{Universality\footnote{This section is freely adapted by the paper: Metropolis, Stein and Stein, "On finite limit sets for transformations on the unit interval" (1973)}}
+In the quoted paper Metropolis and colleagues show that there exist an \textit{infinite sequence of finite limit sets} (the ones we called periodic cycles) whose \textit{structure is common to a wide class of transformations on the unit interval $[0,1]$}.\\
+The limit sets they build are non the only possible ones belonging to an arbitrary transformation in the underlying class, with some finite limit sets whose existence and structure depend on the detailed properties of the particular transformation. Nevertheless, the identified sequence - which we shall refer to as the "U-sequence" - is of fundamental importance when trying to understand the \textit{universality of the structure} and the \textit{order of occurrence} of the whole finite limit sets.\\
+
+Thus a quite general definition of \textit{universality} is the one we can give by observing that there are certain properties for a large class of systems that are independent of the specific dynamical details.\\
+
+Our goal here is not to provide a comprehensive examination of the entire article, but just to report the minimal information that will allow us to explain the origin of the close analogy between the logistic and sine maps through this formalism.\\
+
+
+In particular, the class of transformations $T_{\lambda}(x)$ to which the construction applies will be of the form:
+
+\begin{equation}
+    T_{\lambda}(x_n): x_{n+1} = \lambda f(x_n)
+\end{equation}
+
+where $\lambda$ varies in a certain open interval to be specified below. The fundamental properties
+of $f(x)$ will be:
+
+\begin{itemize}
+    \item $f(x)$ is continuous, single-valued, and      piece-wise $C^1$ on $[0, 1]$, and strictly       positive on $(0,1)$, with $f(0) = f(1) = 0$.
+    
+    \item $f(x)$ has a unique maximum, $f_{max} \leq    1$, assumed either at a point or in an           interval. To the left or right of this point 
+       (or interval) $f(x)$ is strictly increasing or strictly decreasing, respectively.\\
+       (It is allowed the possibility that $f(x)$ assumes its maximum in an interval so as to include certain broken-linear functions with a “flat top”)
+       
+    \item At any $x$ such that $f(x) = f_{max}$, the 
+        derivative exists and is equal to zero.
+        
+    \item Let $\lambda_{max} \equiv 1/f_{max}$. Then    there exists a $\lambda_0$, such that, for       $\lambda_0 < \lambda < \lambda_{max}$,           $\lambda f(x)$ has only two fixed points, $x 
+       = 0$ and $x_F(\lambda)$, say, both of which are repellent.
+       
+\end{itemize}
+
+It is then assumed, with no loss of generality, that $f(x)$ assumes its maximum at the point $x = 1/2$. At this stage, they investigate the solutions $\lambda$ of the equation:
+
+\begin{equation}
+    T^{(k)}_{\lambda}(1/2) = 1/2
+\end{equation}
+
+where the index $k$ corresponds to the length of the attractive periodic orbit they would like to determine.\\
+Applying the algorithm to some apparently uncorrelated transformations, they find that the patterns in which the finite limit sets appear and their $\lambda$-ordering emerge as a common property. This seems to suggest that all the considered transformations belong to the same universality class. \\
+
+So, as a general rule: all the unimodal iterated maps of the form $x_{n+1} = \lambda f(x_n)$ with the function $f(x)$ satisfying the above conditions share the same qualitative dynamics and can therefore be studied on an equal footing.\\
+
+To tell the truth, the formal conditions Metropolis et al. pointed out to guarantee the existence of the U-sequence, \textit{are sufficient}, but \textit{not strictly necessary}. As a consequence, we cannot in principle rule out from a certain universality class a given function just because it does not match the required conditions. However, this is enough to demonstrate from a formal point of view that the logistic and the sine maps share indeed the same qualitative dynamics.
+
+
+
+
+
+
+
+
+
+\newpage
+\section{Higher dimensional models: the 2D Hénon map}
+Once we explored the behaviour of some one dimensional non-linear maps, we conclude this overview on dynamical systems with a taste of the complexity that arises when dealing with \textit{higher dimensional} maps.
+
+More specifically, we are going to give a brief insight into the 2D \textit{Hénon map}
+
+\begin{equation}
+    \begin{cases}
+        x_{n+1} = 1 + y_n - a x_{n}^2 \\
+        y_{n+1} = b x_n
+    \end{cases}
+\end{equation}
+
+with parameters $a = 1.4$ and $b = 0.3$ (such map is called for simplicity "classical Hénon map").\\
+The reason why we chose this specific case is that the classical Hénon map exhibit a peculiar \textit{chaotic} behaviour, while for other values of the parameters the map may be chaotic too, but also intermittent, or even converge to a periodic orbit.\\ 
+To be more precise, in the considered scenario, The Hénon map has two unstable fixed points whose characteristics we are not interested in. Otherwise, an initial point of the plane - beside the cases in which could diverge to infinity - will approach a set of points known as the \textit{Hénon strange attractor}.
+
+An attractor is called strange if it has a \textit{fractal} structure, that is, shows \textit{self-similarity}. This relevant feature can be observed in fig. 3.1.b,b,d, where the same portion of the attractor has been magnified, unveiling the underlying self-similar composition.\\
+When the inherent dynamics is chaotic, the strange attractor shows sensitive dependence on initial conditions: when any two arbitrarily close initial points on the attractor are iterated for a various number of steps, they will lead to points that are arbitrarily far apart (subject to the confines of the attractor itself!), and after any of various other numbers of iterations will lead to points that are arbitrarily close together. Thus a dynamic system with a chaotic attractor is \textit{locally unstable yet globally stable}: once some sequences have entered the attractor, nearby points diverge from one another but never depart from the attractor. This can be seen in fig. 3.1.a, where two very close points are iterated according to the classical Hénon dynamics.
+
+\vspace{7mm}
+\begin{figure}[h!]
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Henon_map/henon_2_trajectories.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Henon_map/henon_1trajectory.png} }}%
+            \centering
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Henon_map/henon_zoom1.png} }}%
+            \qquad
+            \subfloat
+            {{\includegraphics[width=7.5cm, height=5cm]{Henon_map/henon_zoom2.png} }}%
+            \caption{Fig. 3.1 Hénon map: a) trajectories for two arbitrarly close starting points. b) Single trajectory path followed by two progressive magnifications c), d) in correspondence of the thicker regions ($a = 1.4$, $b = 0.3$).}%
+            \label{fig:3.1}%
+        \end{figure}
+
+
+
+\subsection{Lyapunov spectrum\footnote{From "Chaos in two-dimensional maps" by Alligood, Sauer and Yorke (ch 5) }}
+If in the one-dimensional case, the idea was to measure
+separation rates of nearby points along the real line, in higher dimensions, the local behavior of the dynamics may vary with the direction: nearby points may
+be moving apart along one direction, and moving together along another. For a map on $\R^m$, each orbit has $m$ Lyapunov numbers, which measure the rates of separation from the current orbit point along $m$ orthogonal directions, each one determined by the specific dynamics of the map.\\
+
+\vspace{7mm}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=7.5cm, height=5cm]{Henon_map/lyapunov_sphere_ellispoide.png}
+\caption{Fig 3.2 Evolution of an initial infinitesimal disk (Credits to Alligood, Sauer and Yorke)}
+\label{fig:Fig 3.2}
+\end{figure}
+\vspace{10mm}
+
+Consider a sphere $S$ of small radius centered on the first point \textbf{$r_0$} of the orbit. If we examine the image $f(S)$ of the small sphere under one iteration of the map, we see an approximately ellipsoidal shape, with long axes along expanding directions for f and short axes along contracting directions. After $n$ iterates of the map, the small sphere will have evolved into a longer and thinner ellipsoid-like object (fig. 3.2). The per-iterate changes of the axes of this image “ellipsoid” are the Lyapunov numbers. They quantify the amount of stretching and shrinking due to the dynamics near the orbit beginning at \textbf{$r_0$}. The natural logarithm of each Lyapunov number is a Lyapunov exponent.\\
+Then, since we are interested in the infinitesimal behavior near \textbf{$r_0$}, in what follows we can replace the small the map f by the first derivative matrix $Df($\textbf{$r_0$}$)$.
+Denote the first derivative matrix of the nth iterate of f by $J_n \equiv$  $Df^{n}($\textbf{$r_0$}$)$: normally, it is difficult to determine exactly for large n, and we must resort to the approximation of the image ellipsoid of the unit sphere by computational algorithms. The indirect approach that works better in numerical calculations involves following the ellipsoid as it grows.\\
+
+
+\subsection{Wolf method for numerical estimation of Lyapunov Spectrum}
+Here we will provide a schematic sketch of the algorithm commonly used in such cases and that we implemented to find an estimation of the two (we are in the case $\R^m$ with $m = 2$) Lyapunov exponents of the classical Hénon map.
+
+\begin{enumerate}
+
+    \item Initialize the two \textit{Lyapunov exponents} to zero: $\lambda_1 = 0$ and $\lambda_2 = 0$. \\
+    Consider the starting point \textbf{$r_{0}$} and the simplest $\R^2$ \textit{orthonormal basis}: $\mathcal{B} = \{ $ \textbf{$w_{1}^{0}$}, \textbf{$w_{2}^{0}$} $\} = \{ (1,0), (0,1) \}$
+
+    \item Take the \textit{Jacobian matrix} of the Hénon classical map, evaluate it for $x=$\textbf{$w_{1}^{0}$} and apply it to the basis $\mathcal{B}$, finding \textbf{$z_{1}$} and \textbf{$z_{1}$}.
+
+    \item Orthonormilize the so found \textbf{$z_{1}$} and \textbf{$z_{1}$} through the \textit{Gram-Schmidt decomposition}:
+        \begin{equation}
+            \begin{cases}
+                \textbf{$y_{1}^{1}$} = \textbf{$z_{1}$} \\
+                \textbf{$y_{2}^{1}$} = \textbf{$z_{2}$} - \frac{ \textbf{$z_{2}$} \cdot \textbf{$y_{1}^{1}$} }{|| \textbf{$y_{1}^{1}$} ||^2} \textbf{$y_{1}^{1}$}
+            \end{cases}
+            \hspace{3mm}
+            \longrightarrow
+            \hspace{3mm}
+            \begin{cases}
+                \textbf{$w_{1}^{1}$} \equiv \frac{  \textbf{$y_{1}^{1}$} }{ || \textbf{$y_{1}^{1}$} ||^2 } \\
+                \textbf{$w_{2}^{1}$} \equiv \frac{  \textbf{$y_{2}^{1}$} }{ || \textbf{$y_{2}^{1}$} ||^2 }
+            \end{cases}
+        \end{equation}
+
+    \item Update the Lyapunov exponents: $\lambda_1 +=      \ln{|| \textbf{$y_{1}^{1}$} ||^2}$ and              $\lambda_2 += \ln{|| \textbf{$y_{2}^{1}$} ||^2}$
+
+    \item Evolve \textbf{$r_{0}$} into \textbf{$r_{1}$} with the classical Hénon map
+
+    \item Repeat the procedure for a sufficient number $N$ of times and \textit{divide} each of the Lyapunov exponents by $N$.
+    
+\end{enumerate}
+
+To conclude, we report here the results obtained for a run with $N = 10^6$ iteration of the above algorithm applied to the 2D classical Hénon map (\textbf{$r_{0}$} = $(0,0)$). The two values are consistent with what can be found in the scientific literature:
+
+\begin{center}
+    $\lambda_1 \approx 0.42$ \\
+    $\lambda_2 \approx -1.62$
+\end{center}
+
+As a consequence, as the trajectory is iterated, two arbitrarily close points (i.e. within the unit disk) will follow two different paths that stretch in the direction 1 but shrink in the orthogonal direction 2.  
+
+
+
+
+
+
+\end{document}
